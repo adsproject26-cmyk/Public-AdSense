@@ -1,0 +1,1008 @@
+/* ================================================
+   AD-SENSE — App Controller
+   Hash routing, ad toggle, profile popover, FAQ
+   ================================================ */
+
+(function () {
+  'use strict';
+
+  // ─── Hash Router ───
+  const pages = ['home', 'game', 'activities', 'how-it-works'];
+
+  function navigate(hash) {
+    const target = hash.replace('#', '') || 'home';
+    pages.forEach((id) => {
+      const el = document.getElementById('page-' + id);
+      if (el) el.classList.toggle('active', id === target);
+    });
+
+    // Update active nav link
+    document.querySelectorAll('.navbar-links a').forEach((link) => {
+      const linkHash = link.getAttribute('href').replace('#', '');
+      link.classList.toggle('active', linkHash === target);
+    });
+
+    // Close mobile menu on navigation
+    document.querySelector('.navbar-links')?.classList.remove('show');
+
+    // Scroll to top
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  window.addEventListener('hashchange', () => navigate(location.hash));
+  window.addEventListener('DOMContentLoaded', () => {
+    navigate(location.hash || '#home');
+    initAdToggle();
+    initProfilePopover();
+    initAuthModal();
+    initFAQ();
+    initMobileMenu();
+    initPuzzleGame();
+    initWhereIsItGame();
+    loadUserProfile();
+  });
+
+  // ─── Global Navigate Helper (for onclick) ───
+  window.navigateTo = function (hash) {
+    location.hash = hash;
+  };
+
+  // ─── Ad Banner Toggle ───
+  function initAdToggle() {
+    const toggle = document.getElementById('ad-toggle');
+    if (!toggle) return;
+
+    // Load saved preference
+    const saved = localStorage.getItem('adsense-ads-visible');
+    if (saved === 'false') {
+      toggle.checked = false;
+      document.body.classList.add('ads-hidden');
+    } else {
+      toggle.checked = true;
+    }
+
+    toggle.addEventListener('change', () => {
+      if (toggle.checked) {
+        document.body.classList.remove('ads-hidden');
+        localStorage.setItem('adsense-ads-visible', 'true');
+      } else {
+        document.body.classList.add('ads-hidden');
+        localStorage.setItem('adsense-ads-visible', 'false');
+      }
+    });
+  }
+
+  // ─── Profile Popover ───
+  function initProfilePopover() {
+    const btn = document.getElementById('profile-btn');
+    const popover = document.getElementById('profile-popover');
+    if (!btn || !popover) return;
+
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      popover.classList.toggle('show');
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!popover.contains(e.target) && e.target !== btn) {
+        popover.classList.remove('show');
+      }
+    });
+  }
+
+  // ─── FAQ Accordion ───
+  function initFAQ() {
+    document.querySelectorAll('.faq-question').forEach((q) => {
+      q.addEventListener('click', () => {
+        const item = q.closest('.faq-item');
+        const answer = item.querySelector('.faq-answer');
+        const isOpen = item.classList.contains('open');
+
+        // Close all others
+        document.querySelectorAll('.faq-item.open').forEach((openItem) => {
+          if (openItem !== item) {
+            openItem.classList.remove('open');
+            openItem.querySelector('.faq-answer').style.maxHeight = '0';
+          }
+        });
+
+        if (isOpen) {
+          item.classList.remove('open');
+          answer.style.maxHeight = '0';
+        } else {
+          item.classList.add('open');
+          answer.style.maxHeight = answer.scrollHeight + 'px';
+        }
+      });
+    });
+  }
+
+  // ─── Mobile Menu ───
+  function initMobileMenu() {
+    const btn = document.querySelector('.mobile-menu-btn');
+    const links = document.querySelector('.navbar-links');
+    if (!btn || !links) return;
+
+    btn.addEventListener('click', () => {
+      links.classList.toggle('show');
+      btn.textContent = links.classList.contains('show') ? '✕' : '☰';
+    });
+  }
+  // ─── Authentication System ───
+  // Storage Keys
+  const STORAGE_KEY = 'adsense-accounts';
+  const CURRENT_USER_KEY = 'adsense-current-user';
+
+  // Helper: Get all accounts from localStorage
+  function getAllAccounts() {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    return stored ? JSON.parse(stored) : {};
+  }
+
+  // Helper: Save all accounts to localStorage
+  function saveAllAccounts(accounts) {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(accounts));
+  }
+
+  // Helper: Get current logged-in user
+  function getCurrentUser() {
+    const stored = localStorage.getItem(CURRENT_USER_KEY);
+    return stored ? JSON.parse(stored) : null;
+  }
+
+  // Helper: Save current logged-in user
+  function saveCurrentUser(user) {
+    if (user) {
+      localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(user));
+    } else {
+      localStorage.removeItem(CURRENT_USER_KEY);
+    }
+  }
+
+  // Helper: Validate email format
+  function isValidEmail(email) {
+    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return re.test(email);
+  }
+
+  // Helper: Get user avatar letter
+  function getAvatarLetter(name) {
+    return (name && name.length > 0) ? name.charAt(0).toUpperCase() : 'U';
+  }
+
+  // Load and display user profile
+  function loadUserProfile() {
+    const user = getCurrentUser();
+    const guestContent = document.getElementById('guest-profile-content');
+    const userContent = document.getElementById('user-profile-content');
+
+    if (!guestContent || !userContent) return;
+
+    if (user) {
+      // Show logged-in user profile
+      guestContent.style.display = 'none';
+      userContent.style.display = 'flex';
+
+      document.getElementById('user-avatar-display').textContent = getAvatarLetter(user.username);
+      document.getElementById('user-name-display').textContent = user.username;
+      document.getElementById('user-label-display').textContent = `Level ${user.level}`;
+      document.getElementById('user-credits-display').textContent = user.credits;
+      document.getElementById('user-level-display').textContent = `Lv ${user.level}`;
+      document.getElementById('user-games-display').textContent = user.gamesPlayed;
+    } else {
+      // Show guest profile
+      userContent.style.display = 'none';
+      guestContent.style.display = 'flex';
+    }
+  }
+
+  // Initialize auth modal
+  function initAuthModal() {
+    const modal = document.getElementById('auth-modal');
+    const overlay = document.getElementById('auth-modal-overlay');
+    const closeBtn = document.getElementById('auth-modal-close');
+    const signUpBtn = document.getElementById('sign-up-btn');
+    const logoutBtn = document.getElementById('logout-btn');
+    const signupForm = document.getElementById('signup-form');
+    const loginForm = document.getElementById('login-form');
+
+    if (!modal) return;
+
+    // Open modal on sign up button
+    if (signUpBtn) {
+      signUpBtn.addEventListener('click', () => {
+        modal.classList.add('show');
+        showSignupForm();
+      });
+    }
+
+    // Close modal
+    const closeModal = () => {
+      modal.classList.remove('show');
+      clearForms();
+    };
+
+    if (closeBtn) closeBtn.addEventListener('click', closeModal);
+    if (overlay) overlay.addEventListener('click', closeModal);
+
+    // Switch between forms
+    document.querySelectorAll('.switch-form-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const target = btn.getAttribute('data-target');
+        if (target === 'signup') {
+          showSignupForm();
+        } else if (target === 'login') {
+          showLoginForm();
+        }
+      });
+    });
+
+    // Handle sign up
+    if (signupForm) {
+      signupForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        handleSignup();
+      });
+    }
+
+    // Handle login
+    if (loginForm) {
+      loginForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        handleLogin();
+      });
+    }
+
+    // Handle logout
+    if (logoutBtn) {
+      logoutBtn.addEventListener('click', () => {
+        saveCurrentUser(null);
+        loadUserProfile();
+        document.getElementById('profile-popover').classList.remove('show');
+      });
+    }
+  }
+
+  // Show signup form
+  function showSignupForm() {
+    document.getElementById('signup-form-content').style.display = 'block';
+    document.getElementById('login-form-content').style.display = 'none';
+    document.getElementById('signup-form').reset();
+    clearError('signup-error');
+  }
+
+  // Show login form
+  function showLoginForm() {
+    document.getElementById('login-form-content').style.display = 'block';
+    document.getElementById('signup-form-content').style.display = 'none';
+    document.getElementById('login-form').reset();
+    clearError('login-error');
+  }
+
+  // Clear all form inputs
+  function clearForms() {
+    document.getElementById('signup-form').reset();
+    document.getElementById('login-form').reset();
+    clearError('signup-error');
+    clearError('login-error');
+  }
+
+  // Show error message
+  function showError(elementId, message) {
+    const errorEl = document.getElementById(elementId);
+    if (errorEl) {
+      errorEl.textContent = message;
+      errorEl.classList.add('show');
+    }
+  }
+
+  // Clear error message
+  function clearError(elementId) {
+    const errorEl = document.getElementById(elementId);
+    if (errorEl) {
+      errorEl.textContent = '';
+      errorEl.classList.remove('show');
+    }
+  }
+
+  // Handle signup
+  function handleSignup() {
+    const username = document.getElementById('signup-username').value.trim();
+    const email = document.getElementById('signup-email').value.trim();
+    const password = document.getElementById('signup-password').value;
+    const confirmPassword = document.getElementById('signup-confirm-password').value;
+    const errorEl = document.getElementById('signup-error');
+
+    clearError('signup-error');
+
+    // Validation
+    if (!username || !email || !password || !confirmPassword) {
+      showError('signup-error', 'Please fill in all fields');
+      return;
+    }
+
+    if (username.length < 3) {
+      showError('signup-error', 'Username must be at least 3 characters');
+      return;
+    }
+
+    if (!isValidEmail(email)) {
+      showError('signup-error', 'Please enter a valid email');
+      return;
+    }
+
+    if (password.length < 6) {
+      showError('signup-error', 'Password must be at least 6 characters');
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      showError('signup-error', 'Passwords do not match');
+      return;
+    }
+
+    // Check if username or email already exists
+    const accounts = getAllAccounts();
+    if (accounts[username] || Object.values(accounts).some((acc) => acc.email === email)) {
+      showError('signup-error', 'Username or email already exists');
+      return;
+    }
+
+    // Create new account
+    const newAccount = {
+      username,
+      email,
+      password, // In production, this should be hashed!
+      credits: 0,
+      level: 1,
+      gamesPlayed: 0,
+      createdAt: new Date().toISOString(),
+    };
+
+    accounts[username] = newAccount;
+    saveAllAccounts(accounts);
+    saveCurrentUser(newAccount);
+
+    // Close modal and update UI
+    document.getElementById('auth-modal').classList.remove('show');
+    loadUserProfile();
+    clearForms();
+  }
+
+  // Handle login
+  function handleLogin() {
+    const emailOrUsername = document.getElementById('login-email').value.trim();
+    const password = document.getElementById('login-password').value;
+
+    clearError('login-error');
+
+    if (!emailOrUsername || !password) {
+      showError('login-error', 'Please fill in all fields');
+      return;
+    }
+
+    const accounts = getAllAccounts();
+
+    // Find account by username or email
+    let foundAccount = null;
+    if (accounts[emailOrUsername]) {
+      foundAccount = accounts[emailOrUsername];
+    } else {
+      foundAccount = Object.values(accounts).find((acc) => acc.email === emailOrUsername);
+    }
+
+    if (!foundAccount) {
+      showError('login-error', 'Account not found');
+      return;
+    }
+
+    if (foundAccount.password !== password) {
+      showError('login-error', 'Incorrect password');
+      return;
+    }
+
+    // Login successful
+    saveCurrentUser(foundAccount);
+    document.getElementById('auth-modal').classList.remove('show');
+    loadUserProfile();
+    clearForms();
+  }
+
+  // ─── Puzzle Game ───
+  // GOOGLE ADSENSE COMPLIANCE NOTES:
+  // ✓ Game rewards based on PERFORMANCE (time + moves), NOT ad clicks
+  // ✓ Ads placed in SEPARATE ZONES (top, bottom) - no overlay on gameplay
+  // ✓ Clear separation between game content and advertising
+  // ✓ No incentivized clicks - user clicks only if interested
+  // ✓ Engagement metrics track game activity, not ad interaction
+  // ✓ Anti-fraud measures: move counting, timing validation
+  
+  let gameState = {
+    isRunning: false,
+    tiles: [],
+    moves: 0,
+    startTime: 0,
+    gameTime: 0,
+    difficulty: 'easy',
+    timerInterval: null,
+    emptyIndex: 15,
+    suspiciousActivity: false, // Fraud detection flag
+  };
+
+  const difficultyConfig = {
+    easy: { gridSize: 4, timeLimit: 120, baseReward: 25 },
+    medium: { gridSize: 4, timeLimit: 90, baseReward: 50 },
+    hard: { gridSize: 4, timeLimit: 60, baseReward: 100 },
+  };
+
+  function initPuzzleGame() {
+    const startBtn = document.getElementById('start-puzzle-game');
+    const modal = document.getElementById('puzzle-game-modal');
+    const closeBtn = document.getElementById('puzzle-game-close');
+    const overlay = document.getElementById('puzzle-game-overlay');
+
+    if (!startBtn || !modal) return;
+
+    // Open game modal
+    startBtn.addEventListener('click', () => {
+      modal.classList.add('show');
+      showGameScreen('instructions');
+    });
+
+    // Close modal
+    const closeModal = () => {
+      modal.classList.remove('show');
+      stopGameTimer();
+    };
+
+    if (closeBtn) closeBtn.addEventListener('click', closeModal);
+    if (overlay) overlay.addEventListener('click', closeModal);
+
+    // Difficulty selection
+    document.querySelectorAll('.difficulty-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        gameState.difficulty = btn.dataset.difficulty;
+        startNewGame();
+      });
+    });
+
+    // Game controls
+    const quitBtn = document.getElementById('puzzle-quit-btn');
+    const playAgainBtn = document.getElementById('puzzle-play-again-btn');
+    const backBtn = document.getElementById('puzzle-back-btn');
+
+    if (quitBtn) {
+      quitBtn.addEventListener('click', () => {
+        stopGameTimer();
+        showGameScreen('instructions');
+      });
+    }
+
+    if (playAgainBtn) {
+      playAgainBtn.addEventListener('click', () => {
+        startNewGame();
+      });
+    }
+
+    if (backBtn) {
+      backBtn.addEventListener('click', closeModal);
+    }
+  }
+
+  function showGameScreen(screen) {
+    const instructions = document.getElementById('puzzle-instructions');
+    const playing = document.getElementById('puzzle-game-play');
+    const results = document.getElementById('puzzle-results');
+
+    if (instructions) instructions.style.display = 'none';
+    if (playing) playing.style.display = 'none';
+    if (results) results.style.display = 'none';
+
+    if (screen === 'instructions') {
+      if (instructions) instructions.style.display = 'block';
+    } else if (screen === 'playing') {
+      if (playing) playing.style.display = 'block';
+    } else if (screen === 'results') {
+      if (results) results.style.display = 'block';
+    }
+  }
+
+  function startNewGame() {
+    gameState.isRunning = true;
+    gameState.moves = 0;
+    gameState.startTime = Date.now();
+    gameState.gameTime = 0;
+    gameState.tiles = generatePuzzle();
+    gameState.emptyIndex = gameState.tiles.indexOf(null);
+
+    showGameScreen('playing');
+    renderPuzzle();
+    startGameTimer();
+  }
+
+  function generatePuzzle() {
+    const tiles = Array.from({ length: 15 }, (_, i) => i + 1);
+    tiles.push(null);
+
+    // Shuffle with random valid moves
+    for (let i = 0; i < 100; i++) {
+      const emptyIndex = tiles.indexOf(null);
+      const validMoves = getValidMoves(emptyIndex);
+      const randomMove = validMoves[Math.floor(Math.random() * validMoves.length)];
+      [tiles[emptyIndex], tiles[randomMove]] = [tiles[randomMove], tiles[emptyIndex]];
+    }
+
+    return tiles;
+  }
+
+  function getValidMoves(emptyIndex) {
+    const moves = [];
+    const gridSize = 4;
+    const row = Math.floor(emptyIndex / gridSize);
+    const col = emptyIndex % gridSize;
+
+    if (row > 0) moves.push(emptyIndex - gridSize);
+    if (row < gridSize - 1) moves.push(emptyIndex + gridSize);
+    if (col > 0) moves.push(emptyIndex - 1);
+    if (col < gridSize - 1) moves.push(emptyIndex + 1);
+
+    return moves;
+  }
+
+  function renderPuzzle() {
+    const grid = document.getElementById('puzzle-grid');
+    if (!grid) return;
+
+    grid.innerHTML = '';
+    gameState.tiles.forEach((tile, index) => {
+      const tileEl = document.createElement('div');
+      tileEl.className = 'puzzle-tile';
+
+      if (tile === null) {
+        tileEl.classList.add('empty');
+      } else {
+        tileEl.textContent = tile;
+        tileEl.classList.add('moveable');
+        tileEl.addEventListener('click', () => handleTileClick(index));
+      }
+
+      grid.appendChild(tileEl);
+    });
+
+    // Update stats
+    document.getElementById('game-moves').textContent = gameState.moves;
+    document.getElementById('game-difficulty-display').textContent =
+      gameState.difficulty.charAt(0).toUpperCase() + gameState.difficulty.slice(1);
+  }
+
+  function handleTileClick(index) {
+    if (!gameState.isRunning) return;
+
+    const emptyIndex = gameState.tiles.indexOf(null);
+    const validMoves = getValidMoves(emptyIndex);
+
+    if (validMoves.includes(index)) {
+      // Swap tile with empty space
+      [gameState.tiles[emptyIndex], gameState.tiles[index]] = [gameState.tiles[index], gameState.tiles[emptyIndex]];
+      gameState.moves++;
+      gameState.emptyIndex = index;
+      renderPuzzle();
+
+      // Check for win
+      if (isPuzzleSolved()) {
+        endGame(true);
+      }
+    }
+  }
+
+  function isPuzzleSolved() {
+    for (let i = 0; i < 15; i++) {
+      if (gameState.tiles[i] !== i + 1) return false;
+    }
+    return gameState.tiles[15] === null;
+  }
+
+  function startGameTimer() {
+    const config = difficultyConfig[gameState.difficulty];
+    let timeRemaining = config.timeLimit;
+
+    document.getElementById('game-timer').textContent = `${timeRemaining}s`;
+
+    gameState.timerInterval = setInterval(() => {
+      timeRemaining--;
+      gameState.gameTime = config.timeLimit - timeRemaining;
+
+      document.getElementById('game-timer').textContent = `${timeRemaining}s`;
+
+      if (timeRemaining <= 0) {
+        endGame(false);
+      } else if (timeRemaining <= 10) {
+        document.getElementById('game-timer').style.color = '#ff6b6b';
+      }
+    }, 1000);
+  }
+
+  function stopGameTimer() {
+    if (gameState.timerInterval) {
+      clearInterval(gameState.timerInterval);
+      gameState.timerInterval = null;
+    }
+    gameState.isRunning = false;
+  }
+
+  function endGame(won) {
+    stopGameTimer();
+    gameState.isRunning = false;
+
+    const config = difficultyConfig[gameState.difficulty];
+    let creditsEarned = 0;
+
+    if (won) {
+      // ─── FRAUD DETECTION ───
+      // Validate game completion is legitimate
+      const averageMoveTime = (gameState.gameTime * 1000) / gameState.moves;
+      const suspiciouslyFast = averageMoveTime < 50; // Less than 50ms per move = likely bot
+      const tooManyMoves = gameState.moves > 200; // Excessive moves suggest manipulation
+      
+      if (suspiciouslyFast || tooManyMoves) {
+        gameState.suspiciousActivity = true;
+        creditsEarned = 0; // No reward for suspicious activity
+      } else {
+        // Calculate credits based on time and moves (PERFORMANCE-BASED, not ad-based)
+        const timeBonus = Math.max(0, config.timeLimit - gameState.gameTime);
+        const movesPenalty = Math.max(0, gameState.moves - 15);
+        creditsEarned = Math.max(0, config.baseReward + Math.floor(timeBonus / 2) - Math.floor(movesPenalty / 5));
+      }
+    }
+
+    // Update user profile
+    const user = getCurrentUser();
+    if (user) {
+      user.credits += creditsEarned;
+      user.gamesPlayed = (user.gamesPlayed || 0) + 1;
+
+      // Level up every 200 credits
+      user.level = Math.floor(user.credits / 200) + 1;
+
+      saveCurrentUser(user);
+      loadUserProfile();
+    }
+
+    // Show results
+    showResults(won, creditsEarned);
+  }
+
+  function showResults(won, creditsEarned) {
+    const config = difficultyConfig[gameState.difficulty];
+    const statusEl = document.getElementById('results-status');
+    const creditsEl = document.getElementById('result-credits');
+
+    if (gameState.suspiciousActivity) {
+      statusEl.textContent = '⚠️ Activity Detected';
+      creditsEl.textContent = '0';
+      creditsEl.style.color = '#ff6b6b';
+      
+      // Log suspicious activity for review
+      console.warn('Suspicious game activity detected', {
+        gameTime: gameState.gameTime,
+        moves: gameState.moves,
+        difficulty: gameState.difficulty,
+      });
+    } else {
+      statusEl.textContent = won ? '🎉 Puzzle Solved!' : '⏱ Time\'s Up!';
+      creditsEl.textContent = won ? `+${creditsEarned}` : '0';
+      creditsEl.style.color = won ? 'var(--accent-green)' : 'var(--text-muted)';
+    }
+
+    document.getElementById('result-time').textContent = `${gameState.gameTime}s`;
+    document.getElementById('result-moves').textContent = gameState.moves;
+
+    showGameScreen('results');
+  }
+
+  // ─── Where Is It Game ───
+  // GOOGLE ADSENSE COMPLIANCE NOTES:
+  // ✓ Game rewards based on PERFORMANCE (time + wrong clicks), NOT ad interaction
+  // ✓ Ads placed in SEPARATE ZONES (top, bottom), not in game canvas
+  // ✓ Clear separation between game content and advertising
+  // ✓ No incentivized clicks on ads - game is about finding symbols
+  // ✓ Anti-fraud measures: click count validation, timing validation
+
+  let whereIsItGameState = {
+    isRunning: false,
+    symbols: ['★', '●', '■', '◆', '✦', '△', '♠', '♣', '♥', '♦'],
+    currentSymbol: '★',
+    blocks: [],
+    correctBlockId: null,
+    wrongClicks: 0,
+    startTime: 0,
+    gameTime: 0,
+    difficulty: 'easy',
+    timerInterval: null,
+    suspiciousActivity: false,
+  };
+
+  const whereIsItConfig = {
+    easy: { timeLimit: 180, blockCount: 30, baseReward: 30, penalty: 2 },
+    medium: { timeLimit: 120, blockCount: 48, baseReward: 70, penalty: 3 },
+    hard: { timeLimit: 90, blockCount: 72, baseReward: 120, penalty: 5 },
+  };
+
+  function initWhereIsItGame() {
+    const startBtn = document.getElementById('start-whereis-game');
+    const modal = document.getElementById('whereis-game-modal');
+    const closeBtn = document.getElementById('whereis-game-close');
+    const overlay = document.getElementById('whereis-game-overlay');
+
+    if (!startBtn || !modal) return;
+
+    // Open game modal
+    startBtn.addEventListener('click', () => {
+      modal.classList.add('show');
+      showWhereIsItScreen('instructions');
+    });
+
+    // Close modal
+    const closeModal = () => {
+      modal.classList.remove('show');
+      stopWhereIsItTimer();
+    };
+
+    if (closeBtn) closeBtn.addEventListener('click', closeModal);
+    if (overlay) overlay.addEventListener('click', closeModal);
+
+    // Difficulty selection
+    document.querySelectorAll('.whereis-difficulty-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        whereIsItGameState.difficulty = btn.dataset.difficulty;
+        startWhereIsItGame();
+      });
+    });
+
+    // Game controls
+    const quitBtn = document.getElementById('whereis-quit-btn');
+    const playAgainBtn = document.getElementById('whereis-play-again-btn');
+    const backBtn = document.getElementById('whereis-back-btn');
+    const submitBtn = document.getElementById('whereis-submit-btn');
+    const answerInput = document.getElementById('whereis-answer-input');
+
+    if (quitBtn) {
+      quitBtn.addEventListener('click', () => {
+        stopWhereIsItTimer();
+        showWhereIsItScreen('instructions');
+      });
+    }
+
+    if (playAgainBtn) {
+      playAgainBtn.addEventListener('click', () => {
+        startWhereIsItGame();
+      });
+    }
+
+    if (backBtn) {
+      backBtn.addEventListener('click', closeModal);
+    }
+
+    if (submitBtn) {
+      submitBtn.addEventListener('click', handleWhereIsItSubmit);
+    }
+
+    if (answerInput) {
+      answerInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+          handleWhereIsItSubmit();
+        }
+      });
+    }
+  }
+
+  function showWhereIsItScreen(screen) {
+    const instructions = document.getElementById('whereis-instructions');
+    const playing = document.getElementById('whereis-game-play');
+    const results = document.getElementById('whereis-results');
+
+    if (instructions) instructions.style.display = 'none';
+    if (playing) playing.style.display = 'none';
+    if (results) results.style.display = 'none';
+
+    if (screen === 'instructions') {
+      if (instructions) instructions.style.display = 'block';
+    } else if (screen === 'playing') {
+      if (playing) playing.style.display = 'flex';
+    } else if (screen === 'results') {
+      if (results) results.style.display = 'block';
+    }
+  }
+
+  function startWhereIsItGame() {
+    const config = whereIsItConfig[whereIsItGameState.difficulty];
+    
+    whereIsItGameState.isRunning = true;
+    whereIsItGameState.wrongClicks = 0;
+    whereIsItGameState.startTime = Date.now();
+    whereIsItGameState.gameTime = 0;
+    whereIsItGameState.suspiciousActivity = false;
+
+    // Select random target symbol
+    whereIsItGameState.currentSymbol = 
+      whereIsItGameState.symbols[Math.floor(Math.random() * whereIsItGameState.symbols.length)];
+
+    // Generate blocks
+    whereIsItGameState.blocks = generateWhereIsItBlocks(config.blockCount);
+    whereIsItGameState.correctBlockId = Math.floor(Math.random() * config.blockCount);
+
+    // Place target symbol in correct block
+    whereIsItGameState.blocks[whereIsItGameState.correctBlockId].symbol = whereIsItGameState.currentSymbol;
+
+    showWhereIsItScreen('playing');
+    renderWhereIsItCanvas();
+    startWhereIsItTimer(config.timeLimit);
+  }
+
+  function generateWhereIsItBlocks(count) {
+    const symbols = ['★', '●', '■', '◆', '✦', '△', '♠', '♣', '♥', '♦', '✓', '✗'];
+    const blocks = [];
+
+    for (let i = 0; i < count; i++) {
+      blocks.push({
+        id: i,
+        symbol: symbols[Math.floor(Math.random() * symbols.length)],
+      });
+    }
+
+    return blocks;
+  }
+
+  function renderWhereIsItCanvas() {
+    const canvas = document.getElementById('whereis-canvas');
+    const targetEl = document.getElementById('whereis-target-symbol');
+
+    if (!canvas) return;
+
+    canvas.innerHTML = '';
+    targetEl.textContent = whereIsItGameState.currentSymbol;
+
+    whereIsItGameState.blocks.forEach((block) => {
+      const blockEl = document.createElement('div');
+      blockEl.className = 'whereis-ad-block';
+      blockEl.id = `block-${block.id}`;
+      blockEl.dataset.blockId = block.id;
+
+      // Create block content (ad-like appearance)
+      blockEl.innerHTML = `
+        <div class="whereis-ad-block-content">
+          <div class="whereis-ad-img">📢</div>
+          <div>${block.symbol}</div>
+        </div>
+        <div class="whereis-ad-block-number">${block.id + 1}</div>
+      `;
+
+      canvas.appendChild(blockEl);
+    });
+  }
+
+  function handleWhereIsItSubmit() {
+    if (!whereIsItGameState.isRunning) return;
+
+    const inputEl = document.getElementById('whereis-answer-input');
+    const answer = parseInt(inputEl.value, 10);
+
+    if (isNaN(answer) || answer < 1) {
+      inputEl.value = '';
+      return;
+    }
+
+    const correctBlockNumber = whereIsItGameState.correctBlockId + 1;
+
+    if (answer === correctBlockNumber) {
+      // Correct answer!
+      const blockEl = document.getElementById(`block-${whereIsItGameState.correctBlockId}`);
+      if (blockEl) blockEl.classList.add('correct');
+      endWhereIsItGame(true);
+    } else {
+      // Wrong answer
+      whereIsItGameState.wrongClicks++;
+      inputEl.value = '';
+      inputEl.focus();
+      document.getElementById('whereis-wrong-clicks').textContent = whereIsItGameState.wrongClicks;
+
+      // Flash red
+      inputEl.style.borderColor = '#ff6b6b';
+      setTimeout(() => {
+        inputEl.style.borderColor = '';
+      }, 300);
+    }
+  }
+
+  function startWhereIsItTimer(timeLimit) {
+    let timeRemaining = timeLimit;
+    document.getElementById('whereis-timer').textContent = `${timeRemaining}s`;
+
+    whereIsItGameState.timerInterval = setInterval(() => {
+      timeRemaining--;
+      whereIsItGameState.gameTime = timeLimit - timeRemaining;
+
+      document.getElementById('whereis-timer').textContent = `${timeRemaining}s`;
+
+      if (timeRemaining <= 0) {
+        endWhereIsItGame(false);
+      } else if (timeRemaining <= 10) {
+        document.getElementById('whereis-timer').style.color = '#ff6b6b';
+      }
+    }, 1000);
+  }
+
+  function stopWhereIsItTimer() {
+    if (whereIsItGameState.timerInterval) {
+      clearInterval(whereIsItGameState.timerInterval);
+      whereIsItGameState.timerInterval = null;
+    }
+    whereIsItGameState.isRunning = false;
+  }
+
+  function endWhereIsItGame(found) {
+    stopWhereIsItTimer();
+    whereIsItGameState.isRunning = false;
+
+    const config = whereIsItConfig[whereIsItGameState.difficulty];
+    let creditsEarned = 0;
+
+    if (found) {
+      // ─── FRAUD DETECTION ───
+      const averageClickTime = (whereIsItGameState.gameTime * 1000) / (whereIsItGameState.wrongClicks + 1);
+      const suspiciouslyFast = averageClickTime < 100; // Less than 100ms per click
+      const tooManyClicks = whereIsItGameState.wrongClicks > 50; // Too many wrong tries
+
+      if (suspiciouslyFast || tooManyClicks) {
+        whereIsItGameState.suspiciousActivity = true;
+        creditsEarned = 0;
+      } else {
+        // Calculate credits: base + time bonus - wrong click penalty
+        const timeBonus = Math.max(0, config.timeLimit - whereIsItGameState.gameTime);
+        const wrongClickPenalty = whereIsItGameState.wrongClicks * config.penalty;
+        creditsEarned = Math.max(0, config.baseReward + Math.floor(timeBonus / 4) - wrongClickPenalty);
+      }
+    }
+
+    // Update user profile
+    const user = getCurrentUser();
+    if (user) {
+      user.credits += creditsEarned;
+      user.gamesPlayed = (user.gamesPlayed || 0) + 1;
+      user.level = Math.floor(user.credits / 200) + 1;
+
+      saveCurrentUser(user);
+      loadUserProfile();
+    }
+
+    // Show results
+    showWhereIsItResults(found, creditsEarned);
+  }
+
+  function showWhereIsItResults(found, creditsEarned) {
+    const config = whereIsItConfig[whereIsItGameState.difficulty];
+    const statusEl = document.getElementById('whereis-results-status');
+    const creditsEl = document.getElementById('whereis-result-credits');
+
+    if (whereIsItGameState.suspiciousActivity) {
+      statusEl.textContent = '⚠️ Activity Detected';
+      creditsEl.textContent = '0';
+      creditsEl.style.color = '#ff6b6b';
+
+      console.warn('Suspicious where-is-it activity detected', {
+        gameTime: whereIsItGameState.gameTime,
+        wrongClicks: whereIsItGameState.wrongClicks,
+        difficulty: whereIsItGameState.difficulty,
+      });
+    } else {
+      statusEl.textContent = found ? '🎉 Found It!' : '⏱ Time\'s Up!';
+      creditsEl.textContent = found ? `+${creditsEarned}` : '0';
+      creditsEl.style.color = found ? 'var(--accent-green)' : 'var(--text-muted)';
+    }
+
+    document.getElementById('whereis-result-time').textContent = `${whereIsItGameState.gameTime}s`;
+    document.getElementById('whereis-result-wrong').textContent = whereIsItGameState.wrongClicks;
+
+    showWhereIsItScreen('results');
+  }
+})();

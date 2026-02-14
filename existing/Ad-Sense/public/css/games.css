@@ -1,0 +1,770 @@
+/* ================================================
+   AD-SENSE — Games & Modals
+   Game modals, puzzle game, where-is-it game
+   ================================================ */
+
+/* ================================================
+   MODALS (Authentication & Games)
+   ================================================ */
+
+/* ─── Auth Modal ─── */
+.auth-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.auth-modal.show {
+  display: flex;
+}
+
+.auth-modal-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
+}
+
+.auth-modal-content {
+  position: relative;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-glass);
+  border-radius: var(--radius-lg);
+  padding: 40px;
+  width: 90%;
+  max-width: 420px;
+  box-shadow: var(--shadow-lg);
+  animation: slideUp 0.3s ease;
+}
+
+.auth-modal-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 1px solid var(--border-glass);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 18px;
+  transition: all var(--transition-fast);
+}
+
+.auth-modal-close:hover {
+  background: var(--bg-card-hover);
+  color: var(--text-primary);
+  border-color: var(--border-hover);
+}
+
+.auth-form-container {
+  animation: fadeIn 0.3s ease;
+}
+
+.auth-header {
+  margin-bottom: 28px;
+  text-align: center;
+}
+
+.auth-header h2 {
+  color: var(--text-primary);
+  font-size: 24px;
+  margin-bottom: 8px;
+  font-weight: 700;
+}
+
+.auth-header p {
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.auth-footer {
+  margin-top: 20px;
+  text-align: center;
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.switch-form-btn {
+  background: none;
+  border: none;
+  color: var(--accent-purple);
+  cursor: pointer;
+  font-weight: 600;
+  text-decoration: underline;
+  transition: color var(--transition-fast);
+  margin-left: 4px;
+}
+
+.switch-form-btn:hover {
+  color: var(--accent-cyan);
+}
+
+/* ─── Game Modal ─── */
+.game-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.game-modal.show {
+  display: flex;
+}
+
+.game-modal-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
+}
+
+.game-modal-content {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--bg-secondary);
+  border: none;
+  border-radius: 0;
+  width: 100%;
+  max-width: none;
+  max-height: none;
+  height: 100vh;
+  overflow: hidden;
+  box-shadow: none;
+  animation: none;
+  padding: 0;
+}
+
+.game-modal-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 1px solid var(--border-glass);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 18px;
+  transition: all var(--transition-fast);
+  z-index: 10;
+}
+
+.game-modal-close:hover {
+  background: var(--bg-card-hover);
+  color: var(--text-primary);
+  border-color: var(--border-hover);
+}
+
+.game-instructions-screen,
+.game-play-screen,
+.game-results-screen {
+  animation: fadeIn 0.3s ease;
+}
+
+.game-instructions-screen {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow-y: auto;
+  padding: 40px;
+}
+
+.game-play-screen {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.game-results-screen {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow-y: auto;
+  padding: 40px;
+}
+
+.game-header {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.game-header h2 {
+  font-size: 24px;
+  margin-bottom: 8px;
+  font-weight: 700;
+}
+
+.game-header p {
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+/* ─── Instructions Screen ─── */
+.instructions-content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 28px;
+}
+
+.instruction-item {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.instruction-number {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--gradient-main);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 700;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.instruction-text {
+  padding-top: 4px;
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.difficulty-selector {
+  background: var(--bg-card);
+  border: 1px solid var(--border-glass);
+  border-radius: var(--radius-md);
+  padding: 20px;
+}
+
+.difficulty-selector h3 {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 16px;
+}
+
+.difficulty-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.difficulty-btn {
+  padding: 12px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-glass);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: all var(--transition-fast);
+}
+
+.difficulty-btn:hover {
+  background: var(--bg-card);
+  border-color: var(--accent-purple);
+  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
+}
+
+.difficulty-btn .reward {
+  color: var(--accent-green);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.difficulty-subtitle {
+  font-size: 12px;
+  color: var(--accent-green);
+  margin: -8px 0 16px 0;
+  font-weight: 500;
+}
+
+/* ─── Play Screen ─── */
+.game-play-header {
+  display: flex;
+  justify-content: space-around;
+  gap: 20px;
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border-glass);
+}
+
+.game-stat {
+  text-align: center;
+}
+
+.stat-label {
+  display: block;
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.stat-value {
+  display: block;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.game-play-footer {
+  margin-top: 24px;
+  text-align: center;
+}
+
+/* ─── Results Screen ─── */
+.results-content {
+  text-align: center;
+}
+
+.results-status {
+  font-size: 28px;
+  font-weight: 700;
+  margin-bottom: 12px;
+  background: var(--gradient-main);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.results-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  margin: 28px 0;
+  padding: 20px;
+  background: var(--bg-card);
+  border-radius: var(--radius-md);
+}
+
+.result-stat {
+  text-align: center;
+}
+
+.result-stat .label {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.result-stat .value {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.result-note {
+  font-size: 12px;
+  color: var(--accent-green);
+  text-align: center;
+  margin: 16px 0;
+  padding: 8px;
+  background: rgba(16, 185, 129, 0.08);
+  border-radius: var(--radius-sm);
+  border-left: 3px solid var(--accent-green);
+}
+
+.results-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+.results-actions .btn {
+  width: 100%;
+  justify-content: center;
+}
+
+/* ─── Ad Zones ─── */
+.game-ad-zone {
+  margin: 20px 0;
+  padding: 12px;
+  background: var(--bg-card);
+  border: 2px solid var(--border-glass);
+  border-radius: var(--radius-md);
+  min-height: 80px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.game-ad-zone-top-play {
+  margin-bottom: 16px;
+  min-height: 60px;
+}
+
+.game-ad-zone-bottom-play {
+  margin: 16px 0 0 0;
+  min-height: 60px;
+}
+
+.ad-zone-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+  font-weight: 600;
+  opacity: 0.7;
+}
+
+.ad-placeholder {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.ad-placeholder-compact {
+  min-height: 50px;
+  justify-content: center;
+}
+
+.ad-placeholder-img {
+  width: 120px;
+  height: 50px;
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(6, 182, 212, 0.1));
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.ad-placeholder-compact .ad-placeholder-img {
+  width: 100%;
+  height: 40px;
+}
+
+.ad-placeholder-text {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+/* ================================================
+   PUZZLE GAME STYLES
+   ================================================ */
+.puzzle-container {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  overflow-y: auto;
+  padding: 20px;
+}
+
+.puzzle-grid {
+  position: relative;
+  width: 100%;
+  max-width: 100vw;
+}
+
+.puzzle-tile {
+  position: absolute;
+  background: var(--bg-card);
+  border: 1px solid var(--border-glass);
+  border-radius: var(--radius-sm);
+  cursor: grab;
+  user-select: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 600;
+  transition: all var(--transition-fast);
+  overflow: hidden;
+  width: auto;
+  height: auto;
+  padding: 20px;
+  min-width: 60px;
+  min-height: 60px;
+}
+
+.puzzle-tile:hover:not(.empty) {
+  background: var(--bg-card-hover);
+  border-color: var(--accent-purple);
+  box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.2);
+}
+
+.puzzle-tile.empty {
+  background: transparent;
+  border: 2px dashed var(--border-glass);
+  cursor: default;
+}
+
+.puzzle-tile.moveable {
+  cursor: pointer;
+}
+
+/* ================================================
+   WHERE IS IT GAME STYLES
+   ================================================ */
+.whereis-play-screen {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 100vh;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  overflow: hidden;
+}
+
+.whereis-input-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  background: rgba(10, 10, 15, 0.95);
+  backdrop-filter: blur(8px);
+  padding: 16px;
+  border-bottom: 1px solid var(--border-glass);
+}
+
+.whereis-input-container {
+  max-width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.whereis-input-box {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.whereis-input-box label {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.whereis-answer-input {
+  width: 100px;
+  padding: 10px 12px;
+  background: var(--bg-secondary);
+  border: 2px solid var(--border-glass);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-size: 16px;
+  font-weight: 600;
+  text-align: center;
+  transition: all var(--transition-fast);
+}
+
+.whereis-answer-input:focus {
+  outline: none;
+  border-color: var(--accent-purple);
+  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.2);
+}
+
+.whereis-answer-input::placeholder {
+  color: var(--text-muted);
+}
+
+.whereis-target {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-weight: 600;
+}
+
+.whereis-target-label {
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.whereis-target-symbol {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  background: var(--gradient-main);
+  border-radius: var(--radius-md);
+  font-size: 24px;
+  font-weight: 700;
+  color: white;
+  box-shadow: 0 0 20px rgba(139, 92, 246, 0.3);
+}
+
+.whereis-stats {
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.whereis-canvas-container {
+  position: fixed;
+  top: 100px;
+  left: 0;
+  right: 0;
+  bottom: 60px;
+  background: var(--bg-secondary);
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.whereis-canvas-container:active {
+  cursor: grabbing;
+}
+
+.whereis-canvas {
+  position: relative;
+  width: 100%;
+  padding: 20px;
+  background: var(--bg-secondary);
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-content: flex-start;
+}
+
+.whereis-ad-block {
+  position: relative;
+  display: inline-flex;
+  background: var(--bg-card);
+  border: 2px solid var(--border-glass);
+  border-radius: var(--radius-sm);
+  user-select: none;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--text-primary);
+  transition: transform 0.2s ease;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  cursor: default;
+  flex-shrink: 0;
+  margin: 4px;
+  width: auto;
+  height: auto;
+  padding: 12px;
+}
+
+.whereis-ad-block:hover {
+  background: var(--bg-card-hover);
+  border-color: var(--accent-cyan);
+  box-shadow: 0 0 15px rgba(6, 182, 212, 0.3);
+  transform: scale(1.05);
+}
+
+.whereis-ad-block.correct {
+  background: var(--gradient-main);
+  border-color: var(--accent-purple);
+  color: white;
+  box-shadow: 0 0 25px rgba(139, 92, 246, 0.5);
+  animation: pulse-correct 0.6s ease;
+}
+
+.whereis-ad-block.wrong {
+  background: rgba(255, 107, 107, 0.2);
+  border-color: #ff6b6b;
+  animation: pulse-wrong 0.4s ease;
+}
+
+.whereis-ad-block-number {
+  position: absolute;
+  bottom: 4px;
+  right: 4px;
+  font-size: 10px;
+  color: var(--text-secondary);
+  background: rgba(0, 0, 0, 0.4);
+  padding: 2px 4px;
+  border-radius: 3px;
+  font-weight: 700;
+}
+
+.whereis-ad-block.correct .whereis-ad-block-number {
+  color: white;
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.whereis-ad-block-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  text-align: center;
+  padding: 8px;
+}
+
+.whereis-ad-img {
+  width: 24px;
+  height: 24px;
+  margin-bottom: 4px;
+  opacity: 0.7;
+}
+
+.whereis-footer {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 12px 20px;
+  background: rgba(10, 10, 15, 0.95);
+  border-top: 1px solid var(--border-glass);
+  text-align: center;
+}

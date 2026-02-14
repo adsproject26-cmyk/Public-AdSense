@@ -1,0 +1,284 @@
+/* ================================================
+   AD-SENSE — Puzzle Game (15-Tile)
+   Game state, rendering, scoring, anti-fraud
+   ================================================ */
+
+(function (window) {
+  'use strict';
+
+  const { DOM, Utils, Accounts } = window.AdSense;
+
+  let gameState = {
+    isRunning: false,
+    tiles: [],
+    moves: 0,
+    startTime: 0,
+    gameTime: 0,
+    difficulty: 'easy',
+    timerInterval: null,
+    emptyIndex: 15,
+    suspiciousActivity: false,
+  };
+
+  const DIFFICULTY_CONFIG = {
+    easy: { gridSize: 4, timeLimit: 120, baseReward: 25 },
+    medium: { gridSize: 4, timeLimit: 90, baseReward: 50 },
+    hard: { gridSize: 4, timeLimit: 60, baseReward: 100 },
+  };
+
+  // ─── Game Screen Navigation ───
+  function showScreen(screen) {
+    const instructions = DOM.element('puzzle-instructions');
+    const playing = DOM.element('puzzle-game-play');
+    const results = DOM.element('puzzle-results');
+
+    DOM.hide(instructions);
+    DOM.hide(playing);
+    DOM.hide(results);
+
+    if (screen === 'instructions') DOM.show(instructions);
+    else if (screen === 'playing') DOM.show(playing);
+    else if (screen === 'results') DOM.show(results);
+  }
+
+  // ─── Start New Game ───
+  function startNewGame() {
+    gameState.isRunning = true;
+    gameState.moves = 0;
+    gameState.startTime = Date.now();
+    gameState.gameTime = 0;
+    gameState.suspiciousActivity = false;
+    gameState.tiles = generatePuzzle();
+    gameState.emptyIndex = gameState.tiles.indexOf(null);
+
+    showScreen('playing');
+    renderPuzzle();
+    startTimer();
+  }
+
+  // ─── Puzzle Generation ───
+  function generatePuzzle() {
+    const tiles = Array.from({ length: 15 }, (_, i) => i + 1);
+    tiles.push(null);
+
+    // Shuffle with valid moves
+    for (let i = 0; i < 100; i++) {
+      const emptyIndex = tiles.indexOf(null);
+      const validMoves = getValidMoves(emptyIndex);
+      const randomMove = validMoves[Math.floor(Math.random() * validMoves.length)];
+      [tiles[emptyIndex], tiles[randomMove]] = [tiles[randomMove], tiles[emptyIndex]];
+    }
+
+    return tiles;
+  }
+
+  function getValidMoves(emptyIndex) {
+    const moves = [];
+    const gridSize = 4;
+    const row = Math.floor(emptyIndex / gridSize);
+    const col = emptyIndex % gridSize;
+
+    if (row > 0) moves.push(emptyIndex - gridSize);
+    if (row < gridSize - 1) moves.push(emptyIndex + gridSize);
+    if (col > 0) moves.push(emptyIndex - 1);
+    if (col < gridSize - 1) moves.push(emptyIndex + 1);
+
+    return moves;
+  }
+
+  // ─── Render Puzzle Grid ───
+  function renderPuzzle() {
+    const grid = DOM.element('puzzle-grid');
+    if (!grid) return;
+
+    grid.innerHTML = '';
+    gameState.tiles.forEach((tile, index) => {
+      const tileEl = document.createElement('div');
+      tileEl.className = 'puzzle-tile';
+
+      if (tile === null) {
+        tileEl.classList.add('empty');
+      } else {
+        tileEl.textContent = tile;
+        tileEl.classList.add('moveable');
+        tileEl.addEventListener('click', () => handleTileClick(index));
+      }
+
+      grid.appendChild(tileEl);
+    });
+
+    // Update stats
+    DOM.element('game-moves').textContent = gameState.moves;
+    DOM.element('game-difficulty-display').textContent =
+      gameState.difficulty.charAt(0).toUpperCase() + gameState.difficulty.slice(1);
+  }
+
+  // ─── Handle Tile Click ───
+  function handleTileClick(index) {
+    if (!gameState.isRunning) return;
+
+    const emptyIndex = gameState.tiles.indexOf(null);
+    const validMoves = getValidMoves(emptyIndex);
+
+    if (validMoves.includes(index)) {
+      [gameState.tiles[emptyIndex], gameState.tiles[index]] = [gameState.tiles[index], gameState.tiles[emptyIndex]];
+      gameState.moves++;
+      gameState.emptyIndex = index;
+      renderPuzzle();
+
+      if (isPuzzleSolved()) endGame(true);
+    }
+  }
+
+  // ─── Check Win Condition ───
+  function isPuzzleSolved() {
+    for (let i = 0; i < 15; i++) {
+      if (gameState.tiles[i] !== i + 1) return false;
+    }
+    return gameState.tiles[15] === null;
+  }
+
+  // ─── Timer Management ───
+  function startTimer() {
+    const config = DIFFICULTY_CONFIG[gameState.difficulty];
+    let timeRemaining = config.timeLimit;
+
+    DOM.element('game-timer').textContent = `${timeRemaining}s`;
+
+    gameState.timerInterval = setInterval(() => {
+      timeRemaining--;
+      gameState.gameTime = config.timeLimit - timeRemaining;
+
+      DOM.element('game-timer').textContent = `${timeRemaining}s`;
+
+      if (timeRemaining <= 0) {
+        endGame(false);
+      } else if (timeRemaining <= 10) {
+        DOM.element('game-timer').style.color = '#ff6b6b';
+      }
+    }, 1000);
+  }
+
+  function stopTimer() {
+    if (gameState.timerInterval) {
+      clearInterval(gameState.timerInterval);
+      gameState.timerInterval = null;
+    }
+    gameState.isRunning = false;
+  }
+
+  // ─── Game End & Scoring ───
+  function endGame(won) {
+    stopTimer();
+    gameState.isRunning = false;
+
+    const config = DIFFICULTY_CONFIG[gameState.difficulty];
+    let creditsEarned = 0;
+
+    if (won) {
+      // Anti-fraud detection
+      const averageMoveTime = (gameState.gameTime * 1000) / Math.max(gameState.moves, 1);
+      const suspiciouslyFast = averageMoveTime < 50;
+      const tooManyMoves = gameState.moves > 200;
+
+      if (suspiciouslyFast || tooManyMoves) {
+        gameState.suspiciousActivity = true;
+      } else {
+        const timeBonus = Math.max(0, config.timeLimit - gameState.gameTime);
+        const movesPenalty = Math.max(0, gameState.moves - 15);
+        creditsEarned = Math.max(0, config.baseReward + Math.floor(timeBonus / 2) - Math.floor(movesPenalty / 5));
+      }
+    }
+
+    // Update user profile
+    const user = Accounts.getCurrent();
+    if (user) {
+      user.credits += creditsEarned;
+      user.gamesPlayed = (user.gamesPlayed || 0) + 1;
+      user.level = Utils.calculateLevel(user.credits);
+      Accounts.saveCurrent(user);
+      window.AdSense.Profile.load();
+    }
+
+    showResults(won, creditsEarned);
+  }
+
+  // ─── Display Results ───
+  function showResults(won, creditsEarned) {
+    const statusEl = DOM.element('results-status');
+    const creditsEl = DOM.element('result-credits');
+
+    if (gameState.suspiciousActivity) {
+      statusEl.textContent = '⚠️ Activity Detected';
+      creditsEl.textContent = '0';
+      creditsEl.style.color = '#ff6b6b';
+      console.warn('Suspicious puzzle activity detected');
+    } else {
+      statusEl.textContent = won ? '🎉 Puzzle Solved!' : '⏱ Time\'s Up!';
+      creditsEl.textContent = won ? `+${creditsEarned}` : '0';
+      creditsEl.style.color = won ? 'var(--accent-green)' : 'var(--text-muted)';
+    }
+
+    DOM.element('result-time').textContent = `${gameState.gameTime}s`;
+    DOM.element('result-moves').textContent = gameState.moves;
+
+    showScreen('results');
+  }
+
+  // ─── Initialize Game ───
+  function init() {
+    const startBtn = DOM.element('start-puzzle-game');
+    const modal = DOM.element('puzzle-game-modal');
+    const closeBtn = DOM.element('puzzle-game-close');
+    const overlay = DOM.element('puzzle-game-overlay');
+
+    if (!startBtn || !modal) return;
+
+    // Open game
+    startBtn.addEventListener('click', () => {
+      modal.classList.add('show');
+      showScreen('instructions');
+    });
+
+    // Close game
+    const closeModal = () => {
+      modal.classList.remove('show');
+      stopTimer();
+    };
+
+    if (closeBtn) closeBtn.addEventListener('click', closeModal);
+    if (overlay) overlay.addEventListener('click', closeModal);
+
+    // Difficulty selection
+    DOM.queryAll('.difficulty-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        gameState.difficulty = btn.dataset.difficulty;
+        startNewGame();
+      });
+    });
+
+    // Game controls
+    const quitBtn = DOM.element('puzzle-quit-btn');
+    const playAgainBtn = DOM.element('puzzle-play-again-btn');
+    const backBtn = DOM.element('puzzle-back-btn');
+
+    if (quitBtn) {
+      quitBtn.addEventListener('click', () => {
+        stopTimer();
+        showScreen('instructions');
+      });
+    }
+
+    if (playAgainBtn) {
+      playAgainBtn.addEventListener('click', startNewGame);
+    }
+
+    if (backBtn) {
+      backBtn.addEventListener('click', closeModal);
+    }
+  }
+
+  // ─── Export ───
+  window.AdSense = window.AdSense || {};
+  window.AdSense.PuzzleGame = { init };
+})(window);
