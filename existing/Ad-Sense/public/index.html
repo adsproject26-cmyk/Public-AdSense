@@ -214,7 +214,7 @@
         <div class="games-grid">
 
           <!-- Ad Puzzle -->
-          <button class="game-card game-card-clickable" id="start-puzzle-game">
+          <a href="games/game-puzzle.html" class="game-card">
             <div class="game-card-img gradient-bg-purple">🧩</div>
             <div class="game-card-body">
               <h3>Ad Puzzle</h3>
@@ -228,7 +228,7 @@
                 </div>
               </div>
             </div>
-          </button>
+          </a>
 
           <!-- Ad Trivia -->
           <div class="game-card">
@@ -248,7 +248,7 @@
           </div>
 
           <!-- Where Is It -->
-          <button class="game-card game-card-clickable" id="start-whereis-game">
+          <a href="games/game-whereis.html" class="game-card">
             <div class="game-card-img gradient-bg-pink">🔍</div>
             <div class="game-card-body">
               <h3>Ad "Where Is It"</h3>
@@ -262,7 +262,7 @@
                 </div>
               </div>
             </div>
-          </button>
+          </a>
 
           <!-- Multiplayer Arena -->
           <div class="game-card">
@@ -566,306 +566,6 @@
   </main>
 
   <!-- ═══════════════════════════════════════
-       AD PUZZLE GAME MODAL
-       ═══════════════════════════════════════ -->
-  <div class="game-modal" id="puzzle-game-modal">
-    <div class="game-modal-overlay" id="puzzle-game-overlay"></div>
-    <div class="game-modal-content">
-      <button class="game-modal-close" id="puzzle-game-close">✕</button>
-
-      <!-- Game Instructions -->
-      <div id="puzzle-instructions" class="game-instructions-screen">
-        <div class="game-header">
-          <h2>🧩 Ad Puzzle</h2>
-          <p>Solve the sliding puzzle to earn credits</p>
-        </div>
-
-        <div class="instructions-content">
-          <div class="instruction-item">
-            <div class="instruction-number">1</div>
-            <div class="instruction-text">Click tiles adjacent to the empty space to move them</div>
-          </div>
-          <div class="instruction-item">
-            <div class="instruction-number">2</div>
-            <div class="instruction-text">Reconstruct the image before time runs out</div>
-          </div>
-          <div class="instruction-item">
-            <div class="instruction-number">3</div>
-            <div class="instruction-text">Faster times and fewer moves = more credits earned</div>
-          </div>
-          <div class="instruction-item">
-            <div class="instruction-number">4</div>
-            <div class="instruction-text">No ads need to be clicked to earn rewards</div>
-          </div>
-        </div>
-
-        <!-- Ad Zone: Above Difficulty Selection (AdSense Compliant) -->
-        <div class="game-ad-zone" id="game-ad-zone-top">
-          <div class="ad-zone-label">Advertisement</div>
-          <div class="ad-placeholder">
-            <div class="ad-placeholder-img">AD</div>
-            <span class="ad-placeholder-text">Your ad could appear here</span>
-          </div>
-        </div>
-
-        <div class="difficulty-selector">
-          <h3>Choose Difficulty</h3>
-          <p class="difficulty-subtitle">Game rewards are earned based on performance, not ad interaction</p>
-          <div class="difficulty-buttons">
-            <button type="button" class="difficulty-btn" data-difficulty="easy">
-              <span>Easy</span>
-              <span class="reward">+25 credits</span>
-            </button>
-            <button type="button" class="difficulty-btn" data-difficulty="medium">
-              <span>Medium</span>
-              <span class="reward">+50 credits</span>
-            </button>
-            <button type="button" class="difficulty-btn" data-difficulty="hard">
-              <span>Hard</span>
-              <span class="reward">+100 credits</span>
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Game Playing -->
-      <div id="puzzle-game-play" class="game-play-screen" style="display: none;">
-        <!-- Ad Zone: Playing Top (AdSense Compliant) -->
-        <div class="game-ad-zone game-ad-zone-top-play">
-          <div class="ad-zone-label">Advertisement</div>
-          <div class="ad-placeholder ad-placeholder-compact">
-            <div class="ad-placeholder-img">AD</div>
-          </div>
-        </div>
-
-        <div class="game-play-header">
-          <div class="game-stat">
-            <span class="stat-label">Time</span>
-            <span class="stat-value" id="game-timer">60s</span>
-          </div>
-          <div class="game-stat">
-            <span class="stat-label">Moves</span>
-            <span class="stat-value" id="game-moves">0</span>
-          </div>
-          <div class="game-stat">
-            <span class="stat-label">Difficulty</span>
-            <span class="stat-value" id="game-difficulty-display">Easy</span>
-          </div>
-        </div>
-
-        <!-- CORE GAME AREA - No ads overlay or interfere -->
-        <div class="puzzle-container">
-          <div class="puzzle-grid" id="puzzle-grid"></div>
-        </div>
-
-        <!-- Ad Zone: Below Game (Safe Distance) (AdSense Compliant) -->
-        <div class="game-ad-zone game-ad-zone-bottom-play">
-          <div class="ad-zone-label">Advertisement</div>
-          <div class="ad-placeholder ad-placeholder-compact">
-            <div class="ad-placeholder-img">AD</div>
-          </div>
-        </div>
-
-        <div class="game-play-footer">
-          <button type="button" class="btn btn-outline" id="puzzle-quit-btn">Quit Game</button>
-        </div>
-      </div>
-
-      <!-- Game Results -->
-      <div id="puzzle-results" class="game-results-screen" style="display: none;">
-        <!-- Ad Zone: Results Top (AdSense Compliant) -->
-        <div class="game-ad-zone">
-          <div class="ad-zone-label">Advertisement</div>
-          <div class="ad-placeholder">
-            <div class="ad-placeholder-img">AD</div>
-          </div>
-        </div>
-
-        <div class="results-content">
-          <div class="results-status" id="results-status"></div>
-          <div class="results-stats">
-            <div class="result-stat">
-              <div class="label">Time Taken</div>
-              <div class="value" id="result-time">0s</div>
-            </div>
-            <div class="result-stat">
-              <div class="label">Total Moves</div>
-              <div class="value" id="result-moves">0</div>
-            </div>
-            <div class="result-stat">
-              <div class="label">Credits Earned</div>
-              <div class="value" id="result-credits">0</div>
-            </div>
-          </div>
-          <p class="result-note">Credits earned purely from game performance • No ad clicks required</p>
-          <div class="results-actions">
-            <button type="button" class="btn btn-primary" id="puzzle-play-again-btn">Play Again</button>
-            <button type="button" class="btn btn-outline" id="puzzle-back-btn">Back to Games</button>
-          </div>
-        </div>
-
-        <!-- Ad Zone: Results Bottom (AdSense Compliant) -->
-        <div class="game-ad-zone">
-          <div class="ad-zone-label">Advertisement</div>
-          <div class="ad-placeholder">
-            <div class="ad-placeholder-img">AD</div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ═══════════════════════════════════════
-       AD WHERE IS IT GAME MODAL
-       ═══════════════════════════════════════ -->
-  <div class="game-modal" id="whereis-game-modal">
-    <div class="game-modal-overlay" id="whereis-game-overlay"></div>
-    <div class="game-modal-content">
-      <button class="game-modal-close" id="whereis-game-close">✕</button>
-
-      <!-- Game Instructions -->
-      <div id="whereis-instructions" class="game-instructions-screen">
-        <div class="game-header">
-          <h2>🔍 Ad "Where Is It"</h2>
-          <p>Find the target symbol in the ad canvas</p>
-        </div>
-
-        <div class="instructions-content">
-          <div class="instruction-item">
-            <div class="instruction-number">1</div>
-            <div class="instruction-text">A target symbol will be shown at the top</div>
-          </div>
-          <div class="instruction-item">
-            <div class="instruction-number">2</div>
-            <div class="instruction-text">Search the canvas for the matching symbol hidden in one of the ad blocks</div>
-          </div>
-          <div class="instruction-item">
-            <div class="instruction-number">3</div>
-            <div class="instruction-text">Enter the block number in the input field at the top to find it</div>
-          </div>
-          <div class="instruction-item">
-            <div class="instruction-number">4</div>
-            <div class="instruction-text">Faster times and fewer wrong answers = more credits earned</div>
-          </div>
-        </div>
-
-        <!-- Ad Zone: Above Difficulty Selection -->
-        <div class="game-ad-zone" id="whereis-ad-zone-top">
-          <div class="ad-zone-label">Advertisement</div>
-          <div class="ad-placeholder">
-            <div class="ad-placeholder-img">AD</div>
-            <span class="ad-placeholder-text">Your ad could appear here</span>
-          </div>
-        </div>
-
-        <div class="difficulty-selector">
-          <h3>Choose Difficulty</h3>
-          <p class="difficulty-subtitle">Game rewards are earned based on performance, not ad interaction</p>
-          <div class="difficulty-buttons">
-            <button type="button" class="difficulty-btn whereis-difficulty-btn" data-difficulty="easy">
-              <span>Easy</span>
-              <span class="reward">+30 credits</span>
-            </button>
-            <button type="button" class="difficulty-btn whereis-difficulty-btn" data-difficulty="medium">
-              <span>Medium</span>
-              <span class="reward">+70 credits</span>
-            </button>
-            <button type="button" class="difficulty-btn whereis-difficulty-btn" data-difficulty="hard">
-              <span>Hard</span>
-              <span class="reward">+120 credits</span>
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Game Playing -->
-      <div id="whereis-game-play" class="whereis-play-screen" style="display: none;">
-        <div class="whereis-input-overlay">
-          <div class="whereis-input-container">
-            <div class="whereis-target">
-              <span class="whereis-target-label">Find Symbol:</span>
-              <span class="whereis-target-symbol" id="whereis-target-symbol">★</span>
-            </div>
-            <div class="whereis-input-box">
-              <label for="whereis-answer-input">Enter Block #:</label>
-              <input 
-                type="number" 
-                id="whereis-answer-input" 
-                class="whereis-answer-input"
-                placeholder="0"
-                min="1"
-                max="120"
-              />
-              <button type="button" class="btn btn-small btn-primary" id="whereis-submit-btn">Submit</button>
-            </div>
-            <div class="whereis-stats">
-              <div class="game-stat">
-                <span class="stat-label">Time</span>
-                <span class="stat-value" id="whereis-timer">300s</span>
-              </div>
-              <div class="game-stat">
-                <span class="stat-label">Wrong Answers</span>
-                <span class="stat-value" id="whereis-wrong-clicks">0</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Canvas Container - Fullscreen, larger than viewport -->
-        <div class="whereis-canvas-container">
-          <div class="whereis-canvas" id="whereis-canvas"></div>
-        </div>
-
-        <div class="whereis-footer">
-          <button type="button" class="btn btn-outline" id="whereis-quit-btn">Quit Game</button>
-        </div>
-      </div>
-
-      <!-- Game Results -->
-      <div id="whereis-results" class="game-results-screen" style="display: none;">
-        <!-- Ad Zone: Results Top -->
-        <div class="game-ad-zone">
-          <div class="ad-zone-label">Advertisement</div>
-          <div class="ad-placeholder">
-            <div class="ad-placeholder-img">AD</div>
-          </div>
-        </div>
-
-        <div class="results-content">
-          <div class="results-status" id="whereis-results-status"></div>
-          <div class="results-stats">
-            <div class="result-stat">
-              <div class="label">Time Taken</div>
-              <div class="value" id="whereis-result-time">0s</div>
-            </div>
-            <div class="result-stat">
-              <div class="label">Wrong Clicks</div>
-              <div class="value" id="whereis-result-wrong">0</div>
-            </div>
-            <div class="result-stat">
-              <div class="label">Credits Earned</div>
-              <div class="value" id="whereis-result-credits">0</div>
-            </div>
-          </div>
-          <p class="result-note">Credits earned purely from game performance • No ad clicks required</p>
-          <div class="results-actions">
-            <button type="button" class="btn btn-primary" id="whereis-play-again-btn">Play Again</button>
-            <button type="button" class="btn btn-outline" id="whereis-back-btn">Back to Games</button>
-          </div>
-        </div>
-
-        <!-- Ad Zone: Results Bottom -->
-        <div class="game-ad-zone">
-          <div class="ad-zone-label">Advertisement</div>
-          <div class="ad-placeholder">
-            <div class="ad-placeholder-img">AD</div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ═══════════════════════════════════════
        AUTH MODAL
        ═══════════════════════════════════════ -->
   <div class="auth-modal" id="auth-modal">
@@ -963,10 +663,6 @@
 
   <!-- Authentication -->
   <script src="js/auth.js"></script>
-
-  <!-- Games -->
-  <script src="js/game-puzzle.js"></script>
-  <script src="js/game-whereis.js"></script>
 
   <!-- Application initialization -->
   <script src="js/core.js"></script>

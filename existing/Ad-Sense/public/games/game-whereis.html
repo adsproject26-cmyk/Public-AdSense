@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ad "Where Is It" — Ad-Sense</title>
+  <meta name="description" content="Find hidden branded elements in complex images and earn credits." />
+  <!-- Base styles and variables -->
+  <link rel="stylesheet" href="../css/base.css" />
+  <!-- Layout and navigation -->
+  <link rel="stylesheet" href="../css/layout.css" />
+  <!-- Components and UI elements -->
+  <link rel="stylesheet" href="../css/components.css" />
+  <!-- Profile UI -->
+  <link rel="stylesheet" href="../css/ui-profile.css" />
+  <!-- Games and modals -->
+  <link rel="stylesheet" href="../css/games.css" />
+  <!-- Responsive design -->
+  <link rel="stylesheet" href="../css/responsive.css" />
+</head>
+<body>
+
+  <!-- ═══════════════════════════════════════
+       NAVBAR
+       ═══════════════════════════════════════ -->
+  <nav class="navbar">
+    <a href="../index.html" class="navbar-brand">
+      <span class="brand-icon">⚡</span>
+      Ad-Sense
+    </a>
+
+    <button class="mobile-menu-btn" aria-label="Toggle menu">☰</button>
+
+    <ul class="navbar-links">
+      <li><a href="../index.html#home">Home</a></li>
+      <li><a href="../index.html#game">Game</a></li>
+      <li><a href="../index.html#activities">Activities</a></li>
+      <li><a href="../index.html#how-it-works">How It Works</a></li>
+    </ul>
+
+    <div class="navbar-right">
+      <div class="ad-toggle-wrapper">
+        <label for="ad-toggle">Ads</label>
+        <input type="checkbox" id="ad-toggle" class="toggle-switch" checked />
+      </div>
+
+      <button class="profile-btn" id="profile-btn" aria-label="Profile">👤</button>
+      <div class="profile-popover" id="profile-popover">
+        <!-- Guest State -->
+        <div id="guest-profile-content" class="profile-content">
+          <div class="guest-avatar">G</div>
+          <div class="guest-name">Guest Player</div>
+          <div class="guest-label">Playing as guest</div>
+          <div class="guest-stats">
+            <div class="stat-item">
+              <div class="stat-value">0</div>
+              <div class="stat-label">Credits</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-value">Lv 1</div>
+              <div class="stat-label">Level</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-value">0</div>
+              <div class="stat-label">Games</div>
+            </div>
+          </div>
+          <button class="profile-cta-btn" id="sign-up-btn">Create Account</button>
+        </div>
+        <!-- Logged In State -->
+        <div id="user-profile-content" class="profile-content" style="display: none;">
+          <div class="user-avatar" id="user-avatar-display"></div>
+          <div class="user-name" id="user-name-display"></div>
+          <div class="user-label" id="user-label-display"></div>
+          <div class="user-stats" id="user-stats-display">
+            <div class="stat-item">
+              <div class="stat-value" id="user-credits-display">0</div>
+              <div class="stat-label">Credits</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-value" id="user-level-display">Lv 1</div>
+              <div class="stat-label">Level</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-value" id="user-games-display">0</div>
+              <div class="stat-label">Games</div>
+            </div>
+          </div>
+          <button class="profile-danger-btn" id="logout-btn">Log Out</button>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ═══════════════════════════════════════
+       MAIN CONTENT
+       ═══════════════════════════════════════ -->
+  <main>
+
+    <!-- ─────────── AD WHERE IS IT GAME ─────────── -->
+    <section id="whereis-game-page" class="page active">
+      <div class="game-modal-content">
+        <a href="../index.html#game" class="game-modal-close">✕</a>
+
+        <!-- Game Instructions -->
+        <div id="whereis-instructions" class="game-instructions-screen">
+          <div class="game-header">
+            <h2>🔍 Ad "Where Is It"</h2>
+            <p>Find the target symbol in the ad canvas</p>
+          </div>
+
+          <div class="instructions-content">
+            <div class="instruction-item">
+              <div class="instruction-number">1</div>
+              <div class="instruction-text">A target symbol will be shown at the top</div>
+            </div>
+            <div class="instruction-item">
+              <div class="instruction-number">2</div>
+              <div class="instruction-text">Search the canvas for the matching symbol hidden in one of the ad blocks</div>
+            </div>
+            <div class="instruction-item">
+              <div class="instruction-number">3</div>
+              <div class="instruction-text">Enter the block number in the input field at the top to find it</div>
+            </div>
+            <div class="instruction-item">
+              <div class="instruction-number">4</div>
+              <div class="instruction-text">Faster times and fewer wrong answers = more credits earned</div>
+            </div>
+          </div>
+
+          <!-- Ad Zone: Above Difficulty Selection -->
+          <div class="game-ad-zone" id="whereis-ad-zone-top">
+            <div class="ad-zone-label">Advertisement</div>
+            <div class="ad-placeholder">
+              <div class="ad-placeholder-img">AD</div>
+              <span class="ad-placeholder-text">Your ad could appear here</span>
+            </div>
+          </div>
+
+          <div class="difficulty-selector">
+            <h3>Choose Difficulty</h3>
+            <p class="difficulty-subtitle">Game rewards are earned based on performance, not ad interaction</p>
+            <div class="difficulty-buttons">
+              <button type="button" class="difficulty-btn whereis-difficulty-btn" data-difficulty="easy">
+                <span>Easy</span>
+                <span class="reward">+30 credits</span>
+              </button>
+              <button type="button" class="difficulty-btn whereis-difficulty-btn" data-difficulty="medium">
+                <span>Medium</span>
+                <span class="reward">+70 credits</span>
+              </button>
+              <button type="button" class="difficulty-btn whereis-difficulty-btn" data-difficulty="hard">
+                <span>Hard</span>
+                <span class="reward">+120 credits</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Game Playing -->
+        <div id="whereis-game-play" class="whereis-play-screen" style="display: none;">
+          <div class="whereis-input-overlay">
+            <div class="whereis-input-container">
+              <div class="whereis-target">
+                <span class="whereis-target-label">Find Symbol:</span>
+                <span class="whereis-target-symbol" id="whereis-target-symbol">★</span>
+              </div>
+              <div class="whereis-input-box">
+                <label for="whereis-answer-input">Enter Block #:</label>
+                <input 
+                  type="number" 
+                  id="whereis-answer-input" 
+                  class="whereis-answer-input"
+                  placeholder="0"
+                  min="1"
+                  max="120"
+                />
+                <button type="button" class="btn btn-small btn-primary" id="whereis-submit-btn">Submit</button>
+              </div>
+              <div class="whereis-stats">
+                <div class="game-stat">
+                  <span class="stat-label">Time</span>
+                  <span class="stat-value" id="whereis-timer">300s</span>
+                </div>
+                <div class="game-stat">
+                  <span class="stat-label">Wrong Answers</span>
+                  <span class="stat-value" id="whereis-wrong-clicks">0</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Canvas Container - Fullscreen, larger than viewport -->
+          <div class="whereis-canvas-container">
+            <div class="whereis-canvas" id="whereis-canvas"></div>
+          </div>
+
+          <div class="whereis-footer">
+            <button type="button" class="btn btn-outline" id="whereis-quit-btn">Quit Game</button>
+          </div>
+        </div>
+
+        <!-- Game Results -->
+        <div id="whereis-results" class="game-results-screen" style="display: none;">
+          <!-- Ad Zone: Results Top -->
+          <div class="game-ad-zone">
+            <div class="ad-zone-label">Advertisement</div>
+            <div class="ad-placeholder">
+              <div class="ad-placeholder-img">AD</div>
+            </div>
+          </div>
+
+          <div class="results-content">
+            <div class="results-status" id="whereis-results-status"></div>
+            <div class="results-stats">
+              <div class="result-stat">
+                <div class="label">Time Taken</div>
+                <div class="value" id="whereis-result-time">0s</div>
+              </div>
+              <div class="result-stat">
+                <div class="label">Wrong Clicks</div>
+                <div class="value" id="whereis-result-wrong">0</div>
+              </div>
+              <div class="result-stat">
+                <div class="label">Credits Earned</div>
+                <div class="value" id="whereis-result-credits">0</div>
+              </div>
+            </div>
+            <p class="result-note">Credits earned purely from game performance • No ad clicks required</p>
+            <div class="results-actions">
+              <button type="button" class="btn btn-primary" id="whereis-play-again-btn">Play Again</button>
+              <a href="../index.html#game" class="btn btn-outline">Back to Games</a>
+            </div>
+          </div>
+
+          <!-- Ad Zone: Results Bottom -->
+          <div class="game-ad-zone">
+            <div class="ad-zone-label">Advertisement</div>
+            <div class="ad-placeholder">
+              <div class="ad-placeholder-img">AD</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ═══════════════════════════════════════
+       FOOTER
+       ═══════════════════════════════════════ -->
+  <footer class="footer">
+    <div class="container">
+      <p>© 2026 Ad-Sense · Interactive Ad Gaming Platform · <a href="../index.html#how-it-works">Privacy</a> · <a href="../index.html#how-it-works">Terms</a></p>
+    </div>
+  </footer>
+
+  <!-- Core utilities and helpers -->
+  <script src="../js/utils.js"></script>
+
+  <!-- UI modules -->
+  <script src="../js/ui-navigation.js"></script>
+  <script src="../js/ui-advertising.js"></script>
+  <script src="../js/ui-profile.js"></script>
+
+  <!-- Authentication -->
+  <script src="../js/auth.js"></script>
+
+  <!-- Game -->
+  <script src="../js/game-whereis.js"></script>
+</body>
+</html>
