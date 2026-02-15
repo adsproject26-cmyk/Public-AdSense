@@ -230,12 +230,28 @@
 
   // ─── Initialize Game ───
   function init() {
+    // Difficulty selection (works for both modal and standalone pages)
+    const difficultyBtns = DOM.queryAll('.whereis-difficulty-btn');
+    if (difficultyBtns && difficultyBtns.length > 0) {
+      difficultyBtns.forEach((btn) => {
+        btn.addEventListener('click', () => {
+          gameState.difficulty = btn.dataset.difficulty;
+          startNewGame();
+        });
+      });
+    }
+
     const startBtn = DOM.element('start-whereis-game');
     const modal = DOM.element('whereis-game-modal');
     const closeBtn = DOM.element('whereis-game-close');
     const overlay = DOM.element('whereis-game-overlay');
 
-    if (!startBtn || !modal) return;
+    // Only setup modal controls if modal exists (on index.html)
+    if (!startBtn || !modal) {
+      // Standalone game page - just setup game controls
+      setupGameControls(null);
+      return;
+    }
 
     // Open game
     startBtn.addEventListener('click', () => {
@@ -252,14 +268,11 @@
     if (closeBtn) closeBtn.addEventListener('click', closeModal);
     if (overlay) overlay.addEventListener('click', closeModal);
 
-    // Difficulty selection
-    DOM.queryAll('.whereis-difficulty-btn').forEach((btn) => {
-      btn.addEventListener('click', () => {
-        gameState.difficulty = btn.dataset.difficulty;
-        startNewGame();
-      });
-    });
+    // Setup game controls for modal version
+    setupGameControls(closeModal);
+  }
 
+  function setupGameControls(closeModal) {
     // Game controls
     const quitBtn = DOM.element('whereis-quit-btn');
     const playAgainBtn = DOM.element('whereis-play-again-btn');
@@ -278,7 +291,7 @@
       playAgainBtn.addEventListener('click', startNewGame);
     }
 
-    if (backBtn) {
+    if (backBtn && closeModal) {
       backBtn.addEventListener('click', closeModal);
     }
 
@@ -296,4 +309,11 @@
   // ─── Export ───
   window.AdSense = window.AdSense || {};
   window.AdSense.WhereIsItGame = { init };
+
+  // ─── Auto-Initialize on DOM Ready ───
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
 })(window);
