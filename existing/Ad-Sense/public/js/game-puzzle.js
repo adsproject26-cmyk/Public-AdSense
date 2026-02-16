@@ -16,6 +16,7 @@
     gameTime: 0,
     difficulty: 'easy',
     timerInterval: null,
+    gridSize: 4,
     emptyIndex: 15,
     suspiciousActivity: false,
   };
@@ -43,11 +44,13 @@
 
   // ─── Start New Game ───
   function startNewGame() {
+    const config = DIFFICULTY_CONFIG[gameState.difficulty];
     gameState.isRunning = true;
     gameState.moves = 0;
     gameState.startTime = Date.now();
     gameState.gameTime = 0;
     gameState.suspiciousActivity = false;
+    gameState.gridSize = config.gridSize;
     gameState.tiles = generatePuzzle();
     gameState.emptyIndex = gameState.tiles.indexOf(null);
 
@@ -58,11 +61,12 @@
 
   // ─── Puzzle Generation ───
   function generatePuzzle() {
-    const tiles = Array.from({ length: 15 }, (_, i) => i + 1);
+    const totalTiles = gameState.gridSize * gameState.gridSize;
+    const tiles = Array.from({ length: totalTiles - 1 }, (_, i) => i + 1);
     tiles.push(null);
 
-    // Shuffle with valid moves
-    for (let i = 0; i < 100; i++) {
+    // Shuffle with valid moves to keep puzzle solvable.
+    for (let i = 0; i < totalTiles * 20; i++) {
       const emptyIndex = tiles.indexOf(null);
       const validMoves = getValidMoves(emptyIndex);
       const randomMove = validMoves[Math.floor(Math.random() * validMoves.length)];
@@ -74,7 +78,7 @@
 
   function getValidMoves(emptyIndex) {
     const moves = [];
-    const gridSize = 4;
+    const gridSize = gameState.gridSize;
     const row = Math.floor(emptyIndex / gridSize);
     const col = emptyIndex % gridSize;
 
@@ -92,6 +96,9 @@
     if (!grid) return;
 
     grid.innerHTML = '';
+    grid.style.gridTemplateColumns = `repeat(${gameState.gridSize}, minmax(60px, 1fr))`;
+    grid.style.gridTemplateRows = `repeat(${gameState.gridSize}, minmax(60px, 1fr))`;
+
     gameState.tiles.forEach((tile, index) => {
       const tileEl = document.createElement('div');
       tileEl.className = 'puzzle-tile';
@@ -126,16 +133,16 @@
       gameState.emptyIndex = index;
       renderPuzzle();
 
-      if (isPuzzleSolved()) endGame(true);
+      if (isPuzzleSolved(gameState.tiles)) endGame(true);
     }
   }
 
   // ─── Check Win Condition ───
-  function isPuzzleSolved() {
-    for (let i = 0; i < 15; i++) {
-      if (gameState.tiles[i] !== i + 1) return false;
+  function isPuzzleSolved(tiles = gameState.tiles) {
+    for (let i = 0; i < tiles.length - 1; i++) {
+      if (tiles[i] !== i + 1) return false;
     }
-    return gameState.tiles[15] === null;
+    return tiles[tiles.length - 1] === null;
   }
 
   // ─── Timer Management ───
