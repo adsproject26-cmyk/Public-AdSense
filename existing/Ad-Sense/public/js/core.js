@@ -14,7 +14,6 @@
     window.AdSense.Profile.init();
     window.AdSense.Auth.init();
     window.AdSense.FAQ.init();
-    window.AdSense.PuzzleGame.init();
     window.AdSense.WhereIsItGame.init();
   }
 

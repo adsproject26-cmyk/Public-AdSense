@@ -70,6 +70,8 @@
   transition: all var(--transition-base);
   cursor: pointer;
   position: relative;
+  text-decoration: none;
+  color: var(--text-primary);
 }
 
 .game-card:hover {
@@ -264,7 +266,7 @@
 .steps-container::before {
   content: '';
   position: absolute;
-  left: 27px;
+  left: -60px;
   top: 0;
   bottom: 0;
   width: 2px;

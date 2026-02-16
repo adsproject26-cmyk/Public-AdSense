@@ -25,9 +25,9 @@
   --accent-green: #10b981;
   --accent-orange: #f59e0b;
 
-  --gradient-main: linear-gradient(135deg, #8b5cf6, #06b6d4);
-  --gradient-warm: linear-gradient(135deg, #ec4899, #f59e0b);
-  --gradient-cool: linear-gradient(135deg, #06b6d4, #10b981);
+  --gradient-main: linear-gradient(135deg, var(--accent-purple), var(--accent-cyan));
+  --gradient-warm: linear-gradient(135deg, var(--accent-pink), var(--accent-orange));
+  --gradient-cool: linear-gradient(135deg, var(--accent-cyan), var(--accent-green));
 
   --radius-sm: 8px;
   --radius-md: 12px;
