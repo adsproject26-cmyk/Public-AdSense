@@ -23,10 +23,13 @@
   };
 
   const DIFFICULTY_CONFIG = {
-    easy: { timeLimit: 180, blockCount: 30, baseReward: 30, penalty: 2 },
-    medium: { timeLimit: 120, blockCount: 48, baseReward: 70, penalty: 3 },
-    hard: { timeLimit: 90, blockCount: 72, baseReward: 120, penalty: 5 },
+    easy: { timeLimit: 180, blockCount: 30, baseReward: 30, penalty: 2, minBlockSize: 96 },
+    medium: { timeLimit: 120, blockCount: 48, baseReward: 70, penalty: 3, minBlockSize: 78 },
+    hard: { timeLimit: 90, blockCount: 72, baseReward: 120, penalty: 5, minBlockSize: 64 },
   };
+
+  const BLOCK_SYMBOLS = ['★', '●', '■', '◆', '✦', '△', '♠', '♣', '♥', '♦', '✓', '✗'];
+  const DEFAULT_CANVAS_SIZE = { width: 960, height: 640 };
 
   // ─── Game Screen Navigation ───
   function showScreen(screen) {
@@ -57,8 +60,8 @@
     gameState.currentSymbol = gameState.symbols[Math.floor(Math.random() * gameState.symbols.length)];
 
     // Generate blocks
-    gameState.blocks = generateBlocks(config.blockCount);
-    gameState.correctBlockId = Math.floor(Math.random() * config.blockCount);
+    gameState.blocks = generateBlocks(config.blockCount, gameState.currentSymbol);
+    gameState.correctBlockId = Math.floor(Math.random() * gameState.blocks.length);
     gameState.blocks[gameState.correctBlockId].symbol = gameState.currentSymbol;
 
     showScreen('playing');
@@ -67,8 +70,8 @@
   }
 
   // ─── Generate Blocks ───
-  function generateBlocks(count) {
-    const symbols = ['★', '●', '■', '◆', '✦', '△', '♠', '♣', '♥', '♦', '✓', '✗'];
+  function generateBlocks(count, targetSymbol) {
+    const symbols = BLOCK_SYMBOLS.filter((symbol) => symbol !== targetSymbol);
     const blocks = [];
 
     for (let i = 0; i < count; i++) {
@@ -81,21 +84,98 @@
     return blocks;
   }
 
+  function randBetween(min, max) {
+    return Math.random() * (max - min) + min;
+  }
+
+  function getCanvasMetrics() {
+    const container = DOM.element('whereis-canvas-container');
+    if (!container) return DEFAULT_CANVAS_SIZE;
+
+    const rect = container.getBoundingClientRect();
+    const width = Math.max(320, Math.floor(rect.width));
+    const height = Math.max(320, Math.floor(rect.height * 1.4));
+
+    return { width, height };
+  }
+
+  function buildPackedLayout(count, width, height, minSize) {
+    let rects = [{ x: 0, y: 0, w: width, h: height }];
+    let currentMin = minSize;
+    let safety = 0;
+
+    while (rects.length < count && safety < 10000) {
+      safety += 1;
+
+      rects.sort((a, b) => (b.w * b.h) - (a.w * a.h));
+      const rect = rects.shift();
+      if (!rect) break;
+
+      const canSplitW = rect.w >= currentMin * 2;
+      const canSplitH = rect.h >= currentMin * 2;
+
+      if (!canSplitW && !canSplitH) {
+        rects.push(rect);
+        currentMin = Math.max(40, currentMin - 4);
+        continue;
+      }
+
+      const splitVertical = canSplitW && (!canSplitH || Math.random() > 0.45);
+      if (splitVertical) {
+        const splitX = Math.floor(randBetween(rect.x + currentMin, rect.x + rect.w - currentMin));
+        rects.push({ x: rect.x, y: rect.y, w: splitX - rect.x, h: rect.h });
+        rects.push({ x: splitX, y: rect.y, w: rect.x + rect.w - splitX, h: rect.h });
+      } else {
+        const splitY = Math.floor(randBetween(rect.y + currentMin, rect.y + rect.h - currentMin));
+        rects.push({ x: rect.x, y: rect.y, w: rect.w, h: splitY - rect.y });
+        rects.push({ x: rect.x, y: splitY, w: rect.w, h: rect.y + rect.h - splitY });
+      }
+    }
+
+    return rects.slice(0, count);
+  }
+
   // ─── Render Game Canvas ───
   function renderCanvas() {
     const canvas = DOM.element('whereis-canvas');
+    const canvasContainer = DOM.element('whereis-canvas-container');
     const targetEl = DOM.element('whereis-target-symbol');
+    const answerInput = DOM.element('whereis-answer-input');
 
-    if (!canvas) return;
+    const config = DIFFICULTY_CONFIG[gameState.difficulty];
+
+    if (!canvas || !canvasContainer) return;
 
     canvas.innerHTML = '';
     targetEl.textContent = gameState.currentSymbol;
 
+    const { width, height } = getCanvasMetrics();
+    canvas.style.height = `${height}px`;
+    canvas.style.width = `${width}px`;
+
+    const layout = buildPackedLayout(gameState.blocks.length, width, height, config.minBlockSize);
+
+    if (answerInput) {
+      answerInput.max = String(gameState.blocks.length);
+    }
+
     gameState.blocks.forEach((block) => {
+      const rect = layout[block.id];
+      if (!rect) return;
+
+      const maxInset = 8;
+      const inset = Math.min(Math.floor(randBetween(0, maxInset)), Math.floor(Math.min(rect.w, rect.h) / 6));
+      const blockWidth = Math.max(44, rect.w - inset * 2);
+      const blockHeight = Math.max(44, rect.h - inset * 2);
+
       const blockEl = document.createElement('div');
       blockEl.className = 'whereis-ad-block';
       blockEl.id = `block-${block.id}`;
       blockEl.dataset.blockId = block.id;
+      blockEl.style.left = `${rect.x + inset}px`;
+      blockEl.style.top = `${rect.y + inset}px`;
+      blockEl.style.width = `${blockWidth}px`;
+      blockEl.style.height = `${blockHeight}px`;
 
       blockEl.innerHTML = `
         <div class="whereis-ad-block-content">

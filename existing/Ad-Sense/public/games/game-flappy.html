@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Where is Valdo — Ad-Sense</title>
-  <meta name="description" content="Find the target symbol hidden among ad blocks and earn credits." />
+  <title>Flappy Ad — Ad-Sense</title>
+  <meta name="description" content="Navigate through ad canvases without crashing or clicking them. A Flappy Bird–inspired ad-avoidance game." />
   <!-- Base styles and variables -->
   <link rel="stylesheet" href="../css/base.css" />
   <!-- Layout and navigation -->
@@ -100,38 +100,39 @@
        ═══════════════════════════════════════ -->
   <main>
 
-    <!-- ─────────── WHERE IS VALDO GAME ─────────── -->
-    <section id="whereis-game-page" class="page active">
+    <!-- ─────────── FLAPPY AD GAME ─────────── -->
+    <section id="flappy-game-page" class="page active">
       <div class="game-modal-content">
+        <a href="../index.html#game" class="game-modal-close">✕</a>
 
         <!-- Game Instructions -->
-        <div id="whereis-instructions" class="game-instructions-screen">
+        <div id="flappy-instructions" class="game-instructions-screen">
           <div class="game-header">
-            <h2>🔍 Where is Valdo</h2>
-            <p>Find the target symbol in the ad canvas</p>
+            <h2>🐤 Flappy Ad</h2>
+            <p>Dodge the ad canvases — don't crash and don't click!</p>
           </div>
 
           <div class="instructions-content">
             <div class="instruction-item">
               <div class="instruction-number">1</div>
-              <div class="instruction-text">A target symbol will be shown at the top</div>
+              <div class="instruction-text">Press <strong>Space</strong>, <strong>Click</strong>, or <strong>Tap</strong> to flap upward</div>
             </div>
             <div class="instruction-item">
               <div class="instruction-number">2</div>
-              <div class="instruction-text">Search the canvas for the matching symbol hidden in one of the ad blocks</div>
+              <div class="instruction-text">Navigate through gaps between the ad canvases</div>
             </div>
             <div class="instruction-item">
               <div class="instruction-number">3</div>
-              <div class="instruction-text">Enter the block number in the input field at the top to find it</div>
+              <div class="instruction-text">Crashing into an ad canvas = <strong>Game Over</strong></div>
             </div>
             <div class="instruction-item">
               <div class="instruction-number">4</div>
-              <div class="instruction-text">Faster times and fewer wrong answers = more credits earned</div>
+              <div class="instruction-text">Accidentally clicking an ad obstacle = <strong>Game Over</strong></div>
             </div>
           </div>
 
-          <!-- Ad Zone: Above Difficulty Selection -->
-          <div class="game-ad-zone" id="whereis-ad-zone-top">
+          <!-- Ad Zone: Above Difficulty Selection (AdSense Compliant) -->
+          <div class="game-ad-zone" id="game-ad-zone-top">
             <div class="ad-zone-label">Advertisement</div>
             <div class="ad-placeholder">
               <div class="ad-placeholder-img">AD</div>
@@ -141,70 +142,88 @@
 
           <div class="difficulty-selector">
             <h3>Choose Difficulty</h3>
-            <p class="difficulty-subtitle">Game rewards are earned based on performance, not ad interaction</p>
+            <p class="difficulty-subtitle">Credits earned from flying skill, not ad interaction</p>
             <div class="difficulty-buttons">
-              <button type="button" class="difficulty-btn whereis-difficulty-btn" data-difficulty="easy">
+              <button type="button" class="difficulty-btn" data-difficulty="easy">
                 <span>Easy</span>
-                <span class="reward">+30 credits</span>
+                <span class="reward">+25 credits</span>
               </button>
-              <button type="button" class="difficulty-btn whereis-difficulty-btn" data-difficulty="medium">
+              <button type="button" class="difficulty-btn" data-difficulty="medium">
                 <span>Medium</span>
-                <span class="reward">+70 credits</span>
+                <span class="reward">+50 credits</span>
               </button>
-              <button type="button" class="difficulty-btn whereis-difficulty-btn" data-difficulty="hard">
+              <button type="button" class="difficulty-btn" data-difficulty="hard">
                 <span>Hard</span>
-                <span class="reward">+120 credits</span>
+                <span class="reward">+100 credits</span>
               </button>
             </div>
           </div>
         </div>
 
         <!-- Game Playing -->
-        <div id="whereis-game-play" class="whereis-play-screen" style="display: none;">
-          <div class="whereis-input-overlay">
-            <div class="whereis-input-container">
-              <div class="whereis-target">
-                <span class="whereis-target-label">Find Symbol:</span>
-                <span class="whereis-target-symbol" id="whereis-target-symbol">★</span>
+        <div id="flappy-game-play" class="game-play-screen flappy-play-screen" style="display: none;">
+          <!-- Ad Zone: Playing Top (AdSense Compliant) -->
+          <div class="game-ad-zone game-ad-zone-top-play">
+            <div class="ad-zone-label">Advertisement</div>
+            <div class="ad-placeholder ad-placeholder-compact">
+              <div class="ad-placeholder-img">AD</div>
+            </div>
+          </div>
+
+          <div class="game-play-header">
+            <div class="game-stat">
+              <span class="stat-label">Score</span>
+              <span class="stat-value" id="flappy-score">0</span>
+            </div>
+            <div class="game-stat">
+              <span class="stat-label">Best</span>
+              <span class="stat-value" id="flappy-best">0</span>
+            </div>
+            <div class="game-stat">
+              <span class="stat-label">Difficulty</span>
+              <span class="stat-value" id="flappy-difficulty-display">Easy</span>
+            </div>
+          </div>
+
+          <!-- CORE GAME AREA -->
+          <div class="flappy-canvas-wrapper" id="flappy-canvas-wrapper">
+            <canvas id="flappy-canvas" width="480" height="640"></canvas>
+            <!-- Start overlay -->
+            <div class="flappy-start-overlay" id="flappy-start-overlay">
+              <div class="flappy-start-text">
+                <span class="flappy-bird-icon">🐤</span>
+                <p>Tap, Click, or press Space to start</p>
               </div>
-              <div class="whereis-input-box">
-                <label for="whereis-answer-input">Enter Block #:</label>
-                <input 
-                  type="number" 
-                  id="whereis-answer-input" 
-                  class="whereis-answer-input"
-                  placeholder="0"
-                  min="1"
-                  max="120"
-                />
-                <button type="button" class="btn btn-small btn-primary" id="whereis-submit-btn">Submit</button>
-              </div>
-              <div class="whereis-stats">
-                <div class="game-stat">
-                  <span class="stat-label">Time</span>
-                  <span class="stat-value" id="whereis-timer">300s</span>
+            </div>
+            <!-- Game-over overlay -->
+            <div class="flappy-gameover-overlay" id="flappy-gameover-overlay" style="display:none;">
+              <div class="flappy-gameover-content">
+                <h3 id="flappy-gameover-title">Game Over!</h3>
+                <p id="flappy-gameover-reason"></p>
+                <div class="flappy-gameover-score">
+                  <span>Score: </span><strong id="flappy-gameover-score-val">0</strong>
                 </div>
-                <div class="game-stat">
-                  <span class="stat-label">Wrong Answers</span>
-                  <span class="stat-value" id="whereis-wrong-clicks">0</span>
-                </div>
+                <button type="button" class="btn btn-primary" id="flappy-retry-btn">Try Again</button>
               </div>
             </div>
           </div>
 
-          <!-- Canvas Container - Fullscreen, larger than viewport -->
-          <div class="whereis-canvas-container" id="whereis-canvas-container">
-            <div class="whereis-canvas" id="whereis-canvas"></div>
+          <!-- Ad Zone: Below Game (Safe Distance) (AdSense Compliant) -->
+          <div class="game-ad-zone game-ad-zone-bottom-play">
+            <div class="ad-zone-label">Advertisement</div>
+            <div class="ad-placeholder ad-placeholder-compact">
+              <div class="ad-placeholder-img">AD</div>
+            </div>
           </div>
 
-          <div class="whereis-footer">
-            <button type="button" class="btn btn-outline" id="whereis-quit-btn">Quit Game</button>
+          <div class="game-play-footer">
+            <button type="button" class="btn btn-outline" id="flappy-quit-btn">Quit Game</button>
           </div>
         </div>
 
         <!-- Game Results -->
-        <div id="whereis-results" class="game-results-screen" style="display: none;">
-          <!-- Ad Zone: Results Top -->
+        <div id="flappy-results" class="game-results-screen" style="display: none;">
+          <!-- Ad Zone: Results Top (AdSense Compliant) -->
           <div class="game-ad-zone">
             <div class="ad-zone-label">Advertisement</div>
             <div class="ad-placeholder">
@@ -213,29 +232,29 @@
           </div>
 
           <div class="results-content">
-            <div class="results-status" id="whereis-results-status"></div>
+            <div class="results-status" id="flappy-results-status"></div>
             <div class="results-stats">
               <div class="result-stat">
-                <div class="label">Time Taken</div>
-                <div class="value" id="whereis-result-time">0s</div>
+                <div class="label">Score</div>
+                <div class="value" id="flappy-result-score">0</div>
               </div>
               <div class="result-stat">
-                <div class="label">Wrong Clicks</div>
-                <div class="value" id="whereis-result-wrong">0</div>
+                <div class="label">Ads Dodged</div>
+                <div class="value" id="flappy-result-dodged">0</div>
               </div>
               <div class="result-stat">
                 <div class="label">Credits Earned</div>
-                <div class="value" id="whereis-result-credits">0</div>
+                <div class="value" id="flappy-result-credits">0</div>
               </div>
             </div>
-            <p class="result-note">Credits earned purely from game performance • No ad clicks required</p>
+            <p class="result-note">Credits earned purely from flying skill • No ad clicks required</p>
             <div class="results-actions">
-              <button type="button" class="btn btn-primary" id="whereis-play-again-btn">Play Again</button>
+              <button type="button" class="btn btn-primary" id="flappy-play-again-btn">Play Again</button>
               <a href="../index.html#game" class="btn btn-outline">Back to Games</a>
             </div>
           </div>
 
-          <!-- Ad Zone: Results Bottom -->
+          <!-- Ad Zone: Results Bottom (AdSense Compliant) -->
           <div class="game-ad-zone">
             <div class="ad-zone-label">Advertisement</div>
             <div class="ad-placeholder">
@@ -269,6 +288,6 @@
   <script src="../js/auth.js"></script>
 
   <!-- Game -->
-  <script src="../js/game-whereis.js"></script>
+  <script src="../js/game-flappy.js"></script>
 </body>
 </html>

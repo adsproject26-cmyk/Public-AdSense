@@ -22,9 +22,9 @@
   };
 
   const DIFFICULTY_CONFIG = {
-    easy: { gridSize: 4, timeLimit: 120, baseReward: 25 },
+    easy: { gridSize: 3, timeLimit: 120, baseReward: 25 },
     medium: { gridSize: 4, timeLimit: 90, baseReward: 50 },
-    hard: { gridSize: 4, timeLimit: 60, baseReward: 100 },
+    hard: { gridSize: 5, timeLimit: 60, baseReward: 100 },
   };
 
   // ─── Game Screen Navigation ───
