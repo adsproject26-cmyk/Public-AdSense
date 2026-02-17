@@ -62,6 +62,29 @@
     grid-template-columns: 1fr;
   }
 
+  .multiplayer-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .multiplayer-card {
+    flex-direction: column;
+  }
+
+  .multiplayer-card-icon {
+    width: 100%;
+    min-width: unset;
+    height: 80px;
+  }
+
+  .multiplayer-card-icon::after {
+    display: none;
+  }
+
+  .multiplayer-info {
+    flex-direction: column;
+    text-align: center;
+  }
+
   .results-stats {
     grid-template-columns: repeat(3, 1fr);
   }

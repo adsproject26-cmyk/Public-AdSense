@@ -8,7 +8,7 @@
 
   const { DOM } = window.AdSense;
 
-  const PAGES = ['home', 'game', 'activities', 'how-it-works'];
+  const PAGES = ['home', 'game', 'multiplayer', 'activities', 'how-it-works'];
 
   // ─── Navigate to Page ───
   function navigate(hash) {
