@@ -11,28 +11,31 @@
   const { DOM, Utils, Accounts } = window.AdSense;
 
   /* ── Constants ────────────────────────────── */
-  const CANVAS_W = 480;
+  const CANVAS_W = 700;
   const CANVAS_H = 640;
 
-  const BIRD_SCREEN_X = 90;           // fixed horizontal position on screen
+  const BIRD_SCREEN_X = 120;          // fixed horizontal position on screen
   const BIRD_W = 34;
   const BIRD_H = 28;
-  const GRAVITY = 0.38;
-  const FLAP_FORCE = -6.8;
-  const MAX_FALL_SPEED = 8;
+  const GRAVITY = 0.22;
+  const FLAP_FORCE = -4.8;
+  const MAX_FALL_SPEED = 5;
+
+  // Top/bottom barriers — bird can touch but not pass through
+  const BARRIER_H = 24;
 
   // Ad-obstacle dimensions (pixels) — IMPORTANT FOR MONETISATION
   // Each obstacle column is 110 px wide. Top & bottom ad panels fill
-  // from the edge to the gap. Typical visible ad canvas per panel:
+  // from the barrier edge to the gap. Typical visible ad canvas per panel:
   //   Width  = 110 px
-  //   Height = 140–410 px  (depends on random gap position)
+  //   Height = 100–380 px  (depends on random gap position)
   // These map closely to IAB's 120 × 240 "Vertical Banner" unit.
   const OBSTACLE_W = 110;
 
   const DIFFICULTY_CONFIG = {
-    easy:   { gap: 170, speed: 2.2, spawnDist: 310, baseReward: 25 },
-    medium: { gap: 145, speed: 3.0, spawnDist: 270, baseReward: 50 },
-    hard:   { gap: 120, speed: 3.8, spawnDist: 240, baseReward: 100 },
+    easy:   { gap: 175, speed: 1.4, spawnDist: 340, baseReward: 25 },
+    medium: { gap: 150, speed: 1.9, spawnDist: 300, baseReward: 50 },
+    hard:   { gap: 125, speed: 2.6, spawnDist: 260, baseReward: 100 },
   };
 
   const AD_TEXTS = [
@@ -64,6 +67,9 @@
     lastTime: 0,
     deathReason: '',
     flapAnim: 0,
+    graceFrames: 0,          // invulnerability frames after start
+    obstacleCount: 0,        // total obstacles spawned this run
+    deathTimer: null,        // timeout id for death→results transition
   };
 
   let canvas, ctx;
@@ -86,14 +92,30 @@
     if (name === 'instructions') DOM.show(DOM.element('flappy-instructions'));
     else if (name === 'playing')  DOM.show(DOM.element('flappy-game-play'));
     else if (name === 'results')  DOM.show(DOM.element('flappy-results'));
-  }
+    // Hide the page footer during gameplay so it can't overlap the canvas
+    const footer = DOM.query('.footer');
+    if (footer) footer.style.display = (name === 'playing') ? 'none' : '';  }
 
   /* ── Obstacle Generation (one-by-one) ─── */
   function spawnObstacle() {
     const { gap } = cfg();
-    const minTop = 60;
-    const maxTop = CANVAS_H - gap - 60;
-    const gapTop = randInt(minTop, maxTop);
+    const minTop = BARRIER_H + 40;
+    const maxTop = CANVAS_H - BARRIER_H - gap - 40;
+
+    let gapTop;
+    // First few obstacles: center the gap near the bird's starting
+    // position so the player doesn't die immediately
+    if (gameState.obstacleCount < 3) {
+      const birdCenter = CANVAS_H / 2;
+      const centerTop = birdCenter - gap / 2;
+      const drift = 50 + gameState.obstacleCount * 20;
+      gapTop = randInt(
+        Math.max(minTop, Math.round(centerTop - drift)),
+        Math.min(maxTop, Math.round(centerTop + drift))
+      );
+    } else {
+      gapTop = randInt(minTop, maxTop);
+    }
 
     gameState.obstacles.push({
       worldX: gameState.nextSpawnX,
@@ -103,6 +125,7 @@
       scored: false,
     });
 
+    gameState.obstacleCount++;
     gameState.nextSpawnX += cfg().spawnDist;
   }
 
@@ -182,11 +205,11 @@
       // Only draw if on screen (with small margin)
       if (screenX + OBSTACLE_W < -20 || screenX > CANVAS_W + 20) return;
 
-      const topH = obs.gapTop;
+      const topH = obs.gapTop - BARRIER_H;
       const botY = obs.gapTop + gap;
-      const botH = CANVAS_H - botY;
+      const botH = CANVAS_H - BARRIER_H - botY;
 
-      drawAdPanel(screenX, 0, OBSTACLE_W, topH, obs.colorIdx, obs.textIdx);
+      drawAdPanel(screenX, BARRIER_H, OBSTACLE_W, topH, obs.colorIdx, obs.textIdx);
       drawAdPanel(screenX, botY, OBSTACLE_W, botH,
         (obs.colorIdx + 1) % AD_COLORS.length,
         (obs.textIdx + 3) % AD_TEXTS.length);
@@ -267,14 +290,59 @@
     }
   }
 
+  function drawBarriers() {
+    // Top barrier
+    const tGrad = ctx.createLinearGradient(0, 0, 0, BARRIER_H);
+    tGrad.addColorStop(0, '#2a2a3a');
+    tGrad.addColorStop(1, '#1a1a28');
+    ctx.fillStyle = tGrad;
+    ctx.fillRect(0, 0, CANVAS_W, BARRIER_H);
+    ctx.strokeStyle = 'rgba(139, 92, 246, 0.35)';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(0, BARRIER_H);
+    ctx.lineTo(CANVAS_W, BARRIER_H);
+    ctx.stroke();
+
+    // Bottom barrier
+    const bGrad = ctx.createLinearGradient(0, CANVAS_H - BARRIER_H, 0, CANVAS_H);
+    bGrad.addColorStop(0, '#1a1a28');
+    bGrad.addColorStop(1, '#2a2a3a');
+    ctx.fillStyle = bGrad;
+    ctx.fillRect(0, CANVAS_H - BARRIER_H, CANVAS_W, BARRIER_H);
+    ctx.strokeStyle = 'rgba(139, 92, 246, 0.35)';
+    ctx.beginPath();
+    ctx.moveTo(0, CANVAS_H - BARRIER_H);
+    ctx.lineTo(CANVAS_W, CANVAS_H - BARRIER_H);
+    ctx.stroke();
+
+    // Hazard hash marks on barriers
+    ctx.strokeStyle = 'rgba(255,255,255,0.06)';
+    ctx.lineWidth = 1;
+    const hashSpacing = 20;
+    const scrollOff = -(gameState.worldOffset % hashSpacing);
+    for (let hx = scrollOff; hx < CANVAS_W; hx += hashSpacing) {
+      // top barrier hashes
+      ctx.beginPath();
+      ctx.moveTo(hx, 0);
+      ctx.lineTo(hx + 10, BARRIER_H);
+      ctx.stroke();
+      // bottom barrier hashes
+      ctx.beginPath();
+      ctx.moveTo(hx, CANVAS_H - BARRIER_H);
+      ctx.lineTo(hx + 10, CANVAS_H);
+      ctx.stroke();
+    }
+  }
+
   function drawHUD() {
-    // Score in top-center
+    // Score in top-center (drawn inside top barrier)
     ctx.fillStyle = '#fff';
-    ctx.font = '800 36px Inter, sans-serif';
+    ctx.font = '800 16px Inter, sans-serif';
     ctx.textAlign = 'center';
-    ctx.textBaseline = 'top';
+    ctx.textBaseline = 'middle';
     ctx.globalAlpha = 0.85;
-    ctx.fillText(gameState.score, CANVAS_W / 2, 18);
+    ctx.fillText('Score: ' + gameState.score, CANVAS_W / 2, BARRIER_H / 2);
     ctx.globalAlpha = 1;
     ctx.textBaseline = 'alphabetic';
   }
@@ -283,21 +351,30 @@
     ctx.clearRect(0, 0, CANVAS_W, CANVAS_H);
     drawBackground();
     drawObstacles();
+    drawBarriers();
     if (gameState.status !== 'idle') drawBird();
     if (gameState.status === 'playing' || gameState.status === 'dead') drawHUD();
   }
 
   /* ── Collision Detection ───────────────── */
+  function clampBird() {
+    const b = gameState.bird;
+    // Barrier clamping — bird can touch but not pass through
+    if (b.y < BARRIER_H) {
+      b.y = BARRIER_H;
+      b.vel = 0;
+    }
+    if (b.y + BIRD_H > CANVAS_H - BARRIER_H) {
+      b.y = CANVAS_H - BARRIER_H - BIRD_H;
+      b.vel = 0;
+    }
+  }
+
   function checkCollision() {
     const b = gameState.bird;
     const { gap } = cfg();
 
-    // Floor / ceiling
-    if (b.y < 0 || b.y + BIRD_H > CANVAS_H) {
-      return 'Crashed into the boundary!';
-    }
-
-    // Obstacles
+    // Obstacles only — barriers are clamped, not lethal
     for (const obs of gameState.obstacles) {
       const screenX = obs.worldX - gameState.worldOffset;
       const birdRight = BIRD_SCREEN_X + BIRD_W;
@@ -344,11 +421,17 @@
     if (b.vel > MAX_FALL_SPEED) b.vel = MAX_FALL_SPEED;
     b.y += b.vel;
 
+    // Clamp to barriers (touch OK, pass-through NOT OK)
+    clampBird();
+
     // Bird rotation based on velocity
-    b.rotation = Math.max(-0.45, Math.min(b.vel * 0.07, 1.2));
+    b.rotation = Math.max(-0.45, Math.min(b.vel * 0.08, 1.2));
 
     // Wing flap animation
     gameState.flapAnim += 0.25;
+
+    // Grace period countdown
+    if (gameState.graceFrames > 0) gameState.graceFrames--;
 
     // Scroll world
     gameState.worldOffset += speed;
@@ -377,10 +460,12 @@
       (obs) => obs.worldX + OBSTACLE_W > gameState.worldOffset - 100
     );
 
-    // Collision
-    const hit = checkCollision();
-    if (hit) {
-      die(hit);
+    // Collision (skip during grace period)
+    if (gameState.graceFrames <= 0) {
+      const hit = checkCollision();
+      if (hit) {
+        die(hit);
+      }
     }
   }
 
@@ -398,7 +483,9 @@
   function flap() {
     if (gameState.status === 'ready') {
       gameState.status = 'playing';
+      gameState.bird.vel = FLAP_FORCE;
       DOM.hide(DOM.element('flappy-start-overlay'));
+      return;  // consume this input as the start action
     }
     if (gameState.status === 'playing') {
       gameState.bird.vel = FLAP_FORCE;
@@ -424,7 +511,9 @@
     DOM.element('flappy-gameover-score-val').textContent = gameState.score;
     overlay.style.display = 'flex';
 
-    setTimeout(() => {
+    gameState.deathTimer = setTimeout(() => {
+      // Only transition if we're still in the dead state from THIS death
+      if (gameState.status !== 'dead') return;
       overlay.style.display = 'none';
       showResults();
     }, 2000);
@@ -464,6 +553,7 @@
   /* ── Init / Reset ──────────────────────── */
   function resetGame() {
     if (gameState.frameId) cancelAnimationFrame(gameState.frameId);
+    if (gameState.deathTimer) { clearTimeout(gameState.deathTimer); gameState.deathTimer = null; }
 
     const best = parseInt(
       localStorage.getItem('flappy-best-' + gameState.difficulty) || '0', 10
@@ -473,11 +563,13 @@
     gameState.bird = { y: CANVAS_H / 2 - BIRD_H / 2, vel: 0, rotation: 0 };
     gameState.obstacles = [];
     gameState.worldOffset = 0;
-    gameState.nextSpawnX = CANVAS_W - 30; // first obstacle appears near right edge
+    gameState.nextSpawnX = CANVAS_W + 200; // first obstacle well off-screen for runway
     gameState.score = 0;
     gameState.bestScore = best;
     gameState.flapAnim = 0;
     gameState.deathReason = '';
+    gameState.graceFrames = 90;  // ~1.5 s invulnerability
+    gameState.obstacleCount = 0;
 
     // Spawn first obstacle
     spawnObstacle();
@@ -509,20 +601,24 @@
   }
 
   /* ── Input Handling ────────────────────── */
-  function handleCanvasClick(e) {
+  function getCanvasCoords(clientX, clientY) {
+    if (!canvas) return null;
+    const rect = canvas.getBoundingClientRect();
+    return {
+      x: (clientX - rect.left) * (CANVAS_W / rect.width),
+      y: (clientY - rect.top) * (CANVAS_H / rect.height),
+    };
+  }
+
+  function handleWrapperMouseDown(e) {
+    // Ignore if click was on a button inside the wrapper
+    if (e.target.closest('button')) return;
     e.preventDefault();
-    e.stopPropagation();
 
     if (gameState.status === 'dead') return;
 
-    const rect = canvas.getBoundingClientRect();
-    const scaleX = CANVAS_W / rect.width;
-    const scaleY = CANVAS_H / rect.height;
-    const cx = (e.clientX - rect.left) * scaleX;
-    const cy = (e.clientY - rect.top) * scaleY;
-
-    // Check if click landed on an ad obstacle
-    if (gameState.status === 'playing' && isClickOnAd(cx, cy)) {
+    const coords = getCanvasCoords(e.clientX, e.clientY);
+    if (coords && gameState.status === 'playing' && isClickOnAd(coords.x, coords.y)) {
       die('You clicked on an ad! Stay away from ads!');
       return;
     }
@@ -530,18 +626,14 @@
     flap();
   }
 
-  function handleCanvasTouch(e) {
+  function handleWrapperTouchStart(e) {
+    if (e.target.closest('button')) return;
     e.preventDefault();
     if (gameState.status === 'dead') return;
 
     const touch = e.touches[0];
-    const rect = canvas.getBoundingClientRect();
-    const scaleX = CANVAS_W / rect.width;
-    const scaleY = CANVAS_H / rect.height;
-    const cx = (touch.clientX - rect.left) * scaleX;
-    const cy = (touch.clientY - rect.top) * scaleY;
-
-    if (gameState.status === 'playing' && isClickOnAd(cx, cy)) {
+    const coords = getCanvasCoords(touch.clientX, touch.clientY);
+    if (coords && gameState.status === 'playing' && isClickOnAd(coords.x, coords.y)) {
       die('You tapped on an ad! Avoid the ads!');
       return;
     }
@@ -594,23 +686,12 @@
       });
     }
 
-    // Canvas input (deferred until canvas exists)
-    const observer = new MutationObserver(() => {
-      const c = DOM.element('flappy-canvas');
-      if (c && !c._flappyBound) {
-        c._flappyBound = true;
-        c.addEventListener('click', handleCanvasClick);
-        c.addEventListener('touchstart', handleCanvasTouch, { passive: false });
-      }
-    });
-    observer.observe(document.body, { childList: true, subtree: true });
-
-    // Also try binding immediately
-    const c = DOM.element('flappy-canvas');
-    if (c && !c._flappyBound) {
-      c._flappyBound = true;
-      c.addEventListener('click', handleCanvasClick);
-      c.addEventListener('touchstart', handleCanvasTouch, { passive: false });
+    // Bind input to the wrapper (covers canvas + overlay) so clicks always register
+    const wrapper = DOM.element('flappy-canvas-wrapper');
+    if (wrapper && !wrapper._flappyBound) {
+      wrapper._flappyBound = true;
+      wrapper.addEventListener('mousedown', handleWrapperMouseDown);
+      wrapper.addEventListener('touchstart', handleWrapperTouchStart, { passive: false });
     }
 
     // Keyboard

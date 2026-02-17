@@ -162,32 +162,16 @@
 
         <!-- Game Playing -->
         <div id="flappy-game-play" class="game-play-screen flappy-play-screen" style="display: none;">
-          <!-- Ad Zone: Playing Top (AdSense Compliant) -->
-          <div class="game-ad-zone game-ad-zone-top-play">
-            <div class="ad-zone-label">Advertisement</div>
-            <div class="ad-placeholder ad-placeholder-compact">
-              <div class="ad-placeholder-img">AD</div>
-            </div>
-          </div>
-
-          <div class="game-play-header">
-            <div class="game-stat">
-              <span class="stat-label">Score</span>
-              <span class="stat-value" id="flappy-score">0</span>
-            </div>
-            <div class="game-stat">
-              <span class="stat-label">Best</span>
-              <span class="stat-value" id="flappy-best">0</span>
-            </div>
-            <div class="game-stat">
-              <span class="stat-label">Difficulty</span>
-              <span class="stat-value" id="flappy-difficulty-display">Easy</span>
-            </div>
-          </div>
-
+          <!-- Stats shown as an overlay inside the canvas wrapper -->
           <!-- CORE GAME AREA -->
           <div class="flappy-canvas-wrapper" id="flappy-canvas-wrapper">
-            <canvas id="flappy-canvas" width="480" height="640"></canvas>
+            <!-- Stats overlay -->
+            <div class="flappy-stats-bar">
+              <span class="flappy-stat">Score: <strong id="flappy-score">0</strong></span>
+              <span class="flappy-stat">Best: <strong id="flappy-best">0</strong></span>
+              <span class="flappy-stat" id="flappy-difficulty-display">Easy</span>
+            </div>
+            <canvas id="flappy-canvas" width="700" height="640"></canvas>
             <!-- Start overlay -->
             <div class="flappy-start-overlay" id="flappy-start-overlay">
               <div class="flappy-start-text">
@@ -206,18 +190,8 @@
                 <button type="button" class="btn btn-primary" id="flappy-retry-btn">Try Again</button>
               </div>
             </div>
-          </div>
-
-          <!-- Ad Zone: Below Game (Safe Distance) (AdSense Compliant) -->
-          <div class="game-ad-zone game-ad-zone-bottom-play">
-            <div class="ad-zone-label">Advertisement</div>
-            <div class="ad-placeholder ad-placeholder-compact">
-              <div class="ad-placeholder-img">AD</div>
-            </div>
-          </div>
-
-          <div class="game-play-footer">
-            <button type="button" class="btn btn-outline" id="flappy-quit-btn">Quit Game</button>
+            <!-- Quit button overlaid on canvas area -->
+            <button type="button" class="btn btn-outline flappy-quit-overlay-btn" id="flappy-quit-btn">✕ Quit</button>
           </div>
         </div>
 
